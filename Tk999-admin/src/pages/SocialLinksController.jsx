@@ -182,9 +182,132 @@ const SocialLinksController = () => {
   const [url, setUrl] = useState("");
   const [iconFile, setIconFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [game, setGame] = useState(null);
 
   useEffect(() => {
     fetchLinks();
+  }, []);
+
+  useEffect(() => {
+    // This runs only once when the component mounts
+    const fetchProviders = async () => {
+      try {
+        const response = await axios.get(
+          "https://apigames.oracleapi.net/api/providers",
+          {
+            headers: {
+              "x-api-key":
+                "b4fb7adb955b1078d8d38b54f5ad7be8ded17cfba85c37e4faa729ddd679d379",
+            },
+          }
+        );
+
+        // This will show the data in browser console
+        console.log("Providers API Response:", response.data);
+      } catch (error) {
+        console.error(
+          "Error fetching providers:",
+          error.response?.data || error.message
+        );
+      }
+    };
+
+    fetchProviders();
+  }, []); // Empty dependency array → runs only on mount
+
+  useEffect(() => {
+    // This runs only once when the component mounts
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(
+          "https://apigames.oracleapi.net/api/categories",
+          {
+            headers: {
+              "x-api-key":
+                "b4fb7adb955b1078d8d38b54f5ad7be8ded17cfba85c37e4faa729ddd679d379",
+            },
+          }
+        );
+
+        // This will show the data in browser console
+        console.log("Categories API Response:", response.data);
+      } catch (error) {
+        console.error(
+          "Error fetching providers:",
+          error.response?.data || error.message
+        );
+      }
+    };
+
+    fetchCategories();
+  }, []); // Empty dependency array → runs only on mount
+
+  useEffect(() => {
+    const fetchGames = async () => {
+      try {
+        const response = await axios.get(
+          "https://apigames.oracleapi.net/api/games/pagination",
+          {
+            params: {
+              page: 1,
+              limit: 50,
+              provider: "000000000000000000000008",
+            },
+            headers: {
+              "x-api-key":
+                "b4fb7adb955b1078d8d38b54f5ad7be8ded17cfba85c37e4faa729ddd679d379", // ← your key (demo only!)
+            },
+          }
+        );
+
+        // THIS IS WHAT YOU ASKED FOR → data in console
+        console.log("Full API Response:", response);
+        console.log("Games Data (50 items):", response.data);
+
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching games:", err.response || err);
+        setError(err.response?.data || err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchGames();
+  }, []);
+
+  const GAME_ID = "0000000000000000000000bd";
+
+  useEffect(() => {
+    const fetchSingleGame = async () => {
+      try {
+        const response = await axios.get(
+          `https://apigames.oracleapi.net/api/games/${GAME_ID}`, // Correct URL with ID
+          {
+            headers: {
+              "x-api-key":
+                "b4fb7adb955b1078d8d38b54f5ad7be8ded17cfba85c37e4faa729ddd679d379",
+            },
+          }
+        );
+
+        // This will show the single game in console
+        console.log("Single Game API Response:", response);
+        console.log("Game Data:", response.data);
+
+        setGame(response.data); // Usually { id, name, thumbnail, provider, etc. }
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching single game:", err.response || err);
+        setError(
+          err.response?.data?.message || err.message || "Game not found"
+        );
+        setLoading(false);
+      }
+    };
+
+    fetchSingleGame();
   }, []);
 
   const fetchLinks = async () => {
@@ -235,6 +358,10 @@ const SocialLinksController = () => {
       fetchLinks();
     }
   };
+
+  if (loading) return <div>Loading game...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!game) return <div>No game data</div>;
 
   return (
     <Container>
