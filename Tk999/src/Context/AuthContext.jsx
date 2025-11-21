@@ -14,7 +14,9 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async (userId) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin?id=${userId}`);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/admin?id=${userId}`
+      );
       if (!res.ok) throw new Error("Failed to fetch user");
       const data = await res.json();
       return data.user;
@@ -41,6 +43,8 @@ export const AuthProvider = ({ children }) => {
       setIsBalanceLoading(false); // লোডিং শেষ
     }
   };
+
+
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
@@ -80,17 +84,19 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      setUser, 
-      loading, 
-      logout, 
-      balance, 
-      refreshBalance,
-      isBalanceLoading,  // নতুন
-      language,
-      setLanguage
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        loading,
+        logout,
+        balance,
+        refreshBalance,
+        isBalanceLoading, // নতুন
+        language,
+        setLanguage,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
