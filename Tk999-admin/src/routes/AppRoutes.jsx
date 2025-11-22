@@ -37,6 +37,8 @@ import MasterAffiliateVideoSettings from "../pages/MasterAffiliateVideoSettings"
 import PromotionController from "../pages/PromotionController";
 import SocialLinksController from "../pages/SocialLinksController";
 import AllUsers from "../pages/AllUsers";
+import AddProvider from "../pages/AddProvider";
+import AddGame from "../pages/AddGame";
 
 const AppRoutes = () => (
   <Routes>
@@ -104,6 +106,8 @@ const AppRoutes = () => (
     />
     <Route path="/add-promotion" element={<PromotionController />} />
     <Route path="/social-links" element={<SocialLinksController />} />
+    <Route path="/add-provider" element={<AddProvider />} />
+    <Route path="/add-game" element={<AddGame />} />
   </Routes>
 );
 

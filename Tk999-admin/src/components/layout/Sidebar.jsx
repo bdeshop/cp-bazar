@@ -470,6 +470,28 @@ const CustomSidebar = ({ collapsed, toggleSidebar, handleMenuSelect }) => {
             </Link>
             <Link
               style={{ color: "inherit", textDecoration: "inherit" }}
+              to="/add-provider"
+            >
+              <MenuItem
+                icon={<FaUserCheck size={16} />}
+                onClick={() => onMenuSelect("Add Provider")}
+              >
+                Add Provider
+              </MenuItem>
+            </Link>
+            <Link
+              style={{ color: "inherit", textDecoration: "inherit" }}
+              to="/add-game"
+            >
+              <MenuItem
+                icon={<FaUserCheck size={16} />}
+                onClick={() => onMenuSelect("Add Game")}
+              >
+                Add Game
+              </MenuItem>
+            </Link>
+            <Link
+              style={{ color: "inherit", textDecoration: "inherit" }}
               to="/game-control"
             >
               <MenuItem

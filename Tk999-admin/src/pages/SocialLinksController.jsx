@@ -217,32 +217,6 @@ const SocialLinksController = () => {
     fetchProviders();
   }, []); // Empty dependency array → runs only on mount
 
-  useEffect(() => {
-    // This runs only once when the component mounts
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get(
-          "https://apigames.oracleapi.net/api/categories",
-          {
-            headers: {
-              "x-api-key":
-                "b4fb7adb955b1078d8d38b54f5ad7be8ded17cfba85c37e4faa729ddd679d379",
-            },
-          }
-        );
-
-        // This will show the data in browser console
-        console.log("Categories API Response:", response.data);
-      } catch (error) {
-        console.error(
-          "Error fetching providers:",
-          error.response?.data || error.message
-        );
-      }
-    };
-
-    fetchCategories();
-  }, []); // Empty dependency array → runs only on mount
 
   useEffect(() => {
     const fetchGames = async () => {

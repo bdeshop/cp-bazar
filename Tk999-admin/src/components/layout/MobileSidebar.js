@@ -235,6 +235,7 @@ const MobileSidebar = ({ open, onClose, handleMenuSelect }) => {
                 </MenuItem>
               </Link>
             </SubMenu>
+
             <SubMenu
               label="Affiliator Site Setting"
               icon={<IoSettings size={16} />}
@@ -387,6 +388,7 @@ const MobileSidebar = ({ open, onClose, handleMenuSelect }) => {
                 </MenuItem>
               </Link>
             </SubMenu>
+
             <SubMenu label="Promotions" icon={<IoMdAddCircle size={16} />}>
               <Link
                 style={{ color: "inherit", textDecoration: "inherit" }}
@@ -480,6 +482,28 @@ const MobileSidebar = ({ open, onClose, handleMenuSelect }) => {
                   onClick={() => onMenuSelect("Add Main Games")}
                 >
                   Add Main Games
+                </MenuItem>
+              </Link>
+              <Link
+                style={{ color: "inherit", textDecoration: "inherit" }}
+                to="/add-provider"
+              >
+                <MenuItem
+                  icon={<FaUserCheck size={16} />}
+                  onClick={() => onMenuSelect("Add Provider")}
+                >
+                  Add Provider
+                </MenuItem>
+              </Link>
+              <Link
+                style={{ color: "inherit", textDecoration: "inherit" }}
+                to="/add-game"
+              >
+                <MenuItem
+                  icon={<FaUserCheck size={16} />}
+                  onClick={() => onMenuSelect("Add Game")}
+                >
+                  Add Game
                 </MenuItem>
               </Link>
               <Link
