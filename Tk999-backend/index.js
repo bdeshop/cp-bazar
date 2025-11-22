@@ -15,7 +15,9 @@ const frontendHomeControlRouter = require("./router/frontend/frontend.controll.r
 const adminHomeFooterControlRouter = require("./router/admin/admin.homeFooterControll.router");
 const { deleteImage } = require("./controller/ImageDelete.Controller");
 const User = require("./model/user.model");
+const qs = require("qs");
 const bcrypt = require("bcrypt");
+const { default: axios } = require("axios");
 
 // const { uploadImage } = require("./controller/ImageUpload.Controller");
 
@@ -27,6 +29,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
+      "http://localhost:5174",
       "http://localhost:3001",
       "https://melbet99.com",
       "https://admin.melbet99.com",
@@ -85,6 +88,55 @@ app.get("/", (req, res) => {
   });
 });
 
+// এই API টা কল করলে গেম লোড হবে → POST /api/playgame
+app.post("/playgame", async (req, res) => {
+  try {
+    const { gameID, username, money } = req.body;
+
+    if (!gameID || !username || !money) {
+      return res.status(400).json({
+        success: false,
+        message: "gameID is required in request body",
+      });
+    }
+
+    const postData = {
+      home_url: "https://cp666.live",
+      token: "e9a26dd9196e51bb18a44016a9ca1d73",
+      username: username, // চাইলে random করতে পারো
+      money: money,
+      gameid: gameID,
+    };
+
+    console.log(postData)
+
+    const response = await axios.post(
+      "https://dstplay.net/getgameurl",
+      qs.stringify(postData),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "x-dstgame-key": postData.token,
+        },
+        timeout: 20000,
+      }
+    );
+
+    // DST থেকে যে URL আসবে সেটা frontend এ পাঠাচ্ছি
+    res.json({
+      success: true,
+      gameUrl: response.data.url || response.data.game_url || response.data,
+    });
+  } catch (error) {
+    console.error("PlayGame API Error:", error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      message: "Failed to launch game",
+      error: error.response?.data || error.message,
+    });
+  }
+});
+
 // ✅ Create static admin user with hashed password
 app.post("/create-admin", async (req, res) => {
   try {
@@ -100,7 +152,6 @@ app.post("/create-admin", async (req, res) => {
       emailVerified: true,
       phoneNumberVerified: true,
     };
-
 
     // ✅ Hash the password
     const salt = await bcrypt.genSalt(10);
