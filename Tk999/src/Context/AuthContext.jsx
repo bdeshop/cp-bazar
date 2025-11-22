@@ -7,10 +7,12 @@ export const AuthProvider = ({ children }) => {
   const [balance, setBalance] = useState(0);
   const [isBalanceLoading, setIsBalanceLoading] = useState(false); // নতুন
   const [user, setUser] = useState(null);
+  const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState(
     localStorage.getItem("sidebarLang") || "bn"
   );
+  console.log(userId);
 
   const fetchUser = async (userId) => {
     try {
@@ -29,6 +31,7 @@ export const AuthProvider = ({ children }) => {
   // শুধু balance রিফ্রেশ
   const refreshBalance = async () => {
     const userId = localStorage.getItem("userId");
+    console.log(userId)
     if (!userId) return;
 
     setIsBalanceLoading(true); // লোডিং শুরু
@@ -44,14 +47,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-
-
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId) {
       fetchUser(userId).then((fetchedUser) => {
         if (fetchedUser) {
           setUser(fetchedUser);
+          setUserId(fetchUser._id);
           setBalance(fetchedUser.balance || 0);
           localStorage.setItem("user", JSON.stringify(fetchedUser));
         } else {

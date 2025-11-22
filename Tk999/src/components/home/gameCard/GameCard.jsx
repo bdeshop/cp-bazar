@@ -85,7 +85,7 @@ const GameCard = ({
   const slideNext = () => swiperRef.current?.slideNext();
 
   const handlePlayClick = () => {
-    if (!user) {
+    if (user) {
       setShowRegisterModal(true);
     } else {
       navigate(`/liveGame/${selectedGame._id}`);
