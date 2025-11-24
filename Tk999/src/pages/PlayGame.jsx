@@ -71,7 +71,11 @@ const PlayGame = () => {
   // গেম লোড হলে Full Screen iframe
   return (
     <div className="min-h-screen">
-      <h1>Play game server DST GAMING PROBLEM</h1>
+      <iframe
+        src={gameUrl}
+        className="w-full h-screen border-0"
+        allowFullScreen
+      ></iframe>
     </div>
   );
 };

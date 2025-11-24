@@ -103,22 +103,22 @@ app.post("/playgame", async (req, res) => {
     const postData = {
       home_url: "https://cp666.live",
       token: "e9a26dd9196e51bb18a44016a9ca1d73",
-      username: username, // চাইলে random করতে পারো
+      username: username + "45", // চাইলে random করতে পারো
       money: money,
       gameid: gameID,
     };
 
-    console.log(postData)
+    console.log(postData);
 
     const response = await axios.post(
-      "https://dstplay.net/getgameurl",
+      // "https://dstplay.net/getgameurl",
+      "https://crazybet99.com/getgameurl",
       qs.stringify(postData),
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           "x-dstgame-key": postData.token,
         },
-        timeout: 20000,
       }
     );
 

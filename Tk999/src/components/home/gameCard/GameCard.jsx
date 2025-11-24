@@ -231,9 +231,9 @@ const GameCard = ({
               )}
 
               <div className="absolute inset-0 hidden md:flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500">
-                <p className="text-white text-2xl font-bold uppercase tracking-wider animate-pulse">
+                <button onClick={handlePlayClick} className="text-white text-2xl font-bold uppercase tracking-wider animate-pulse">
                   Play
-                </p>
+                </button>
               </div>
             </div>
           </SwiperSlide>
