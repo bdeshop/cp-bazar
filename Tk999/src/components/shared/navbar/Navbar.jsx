@@ -50,7 +50,7 @@ const Navbar = ({ onMenuClick, isSidebarOpen }) => {
       "Betting Record": "বাজির রেকর্ড",
       "Account Record": "লাভ ও ক্ষতি",
       "Internal Message": "মেসেজ",
-      Deposit: "ডিপজিত",
+      Deposit: "ডিপজিট",
       Withdrawal: "উত্তোলন",
       "Customer Service": "গ্রাহক সেবা",
       "Sign out": "লগ আউট",

@@ -39,6 +39,7 @@ import SocialLinksController from "../pages/SocialLinksController";
 import AllUsers from "../pages/AllUsers";
 import AddProvider from "../pages/AddProvider";
 import AddGame from "../pages/AddGame";
+import BalanceTransferController from "../pages/BalanceTransferController";
 
 const AppRoutes = () => (
   <Routes>
@@ -108,6 +109,10 @@ const AppRoutes = () => (
     <Route path="/social-links" element={<SocialLinksController />} />
     <Route path="/add-provider" element={<AddProvider />} />
     <Route path="/add-game" element={<AddGame />} />
+    <Route
+      path="/balance-tranasfer-control"
+      element={<BalanceTransferController />}
+    />
   </Routes>
 );
 

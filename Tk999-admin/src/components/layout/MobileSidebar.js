@@ -10,7 +10,7 @@ import { MdOutline6FtApart } from "react-icons/md";
 import { DiCssTricks } from "react-icons/di";
 import { MdLastPage } from "react-icons/md";
 import { IoFootstepsSharp } from "react-icons/io5";
-import { FaFonticonsFi, FaVideo } from "react-icons/fa6";
+import { FaFonticonsFi, FaMoneyBillTransfer, FaVideo } from "react-icons/fa6";
 import { IoMdAddCircle } from "react-icons/io";
 import { IoMdAdd } from "react-icons/io";
 import {
@@ -410,6 +410,17 @@ const MobileSidebar = ({ open, onClose, handleMenuSelect }) => {
                   onClick={() => onMenuSelect("Social Links")}
                 >
                   Social Links
+                </MenuItem>
+              </Link>
+              <Link
+                style={{ color: "inherit", textDecoration: "inherit" }}
+                to="/balance-tranasfer-control"
+              >
+                <MenuItem
+                  icon={<FaMoneyBillTransfer size={16} />}
+                  onClick={() => onMenuSelect("Balance Tranasfer Control")}
+                >
+                  Balance Tranasfer Control
                 </MenuItem>
               </Link>
             </SubMenu>
