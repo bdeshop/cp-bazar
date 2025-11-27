@@ -423,6 +423,39 @@ const MobileSidebar = ({ open, onClose, handleMenuSelect }) => {
                   Balance Tranasfer Control
                 </MenuItem>
               </Link>
+              <Link
+                style={{ color: "inherit", textDecoration: "inherit" }}
+                to="/add-withdraw-method"
+              >
+                <MenuItem
+                  icon={<FaMoneyBillTransfer size={16} />}
+                  onClick={() => onMenuSelect("Add Wihtdraw Method")}
+                >
+                  Add Wihtdraw Method
+                </MenuItem>
+              </Link>
+              <Link
+                style={{ color: "inherit", textDecoration: "inherit" }}
+                to="/withdraw-request"
+              >
+                <MenuItem
+                  icon={<FaMoneyBillTransfer size={16} />}
+                  onClick={() => onMenuSelect("Wihtdraw Request")}
+                >
+                  Wihtdraw Request
+                </MenuItem>
+              </Link>
+              <Link
+                style={{ color: "inherit", textDecoration: "inherit" }}
+                to="/withdraw-history"
+              >
+                <MenuItem
+                  icon={<FaMoneyBillTransfer size={16} />}
+                  onClick={() => onMenuSelect("Wihtdraw History")}
+                >
+                  Wihtdraw History
+                </MenuItem>
+              </Link>
             </SubMenu>
 
             <SubMenu label="Wallet Agent" icon={<FaWallet size={16} />}>

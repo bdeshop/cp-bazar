@@ -107,14 +107,7 @@ const AccountDetailsModal = ({
                   handleInputChange={handleInputChange}
                 />
               )}
-              {activeModal === "changePassword" && (
-                <PasswordTab
-                  language={language}
-                  formData={formData}
-                  handleInputChange={handleInputChange}
-                  setFormData={setFormData}
-                />
-              )}
+              {activeModal === "changePassword" && <PasswordTab />}
               {activeModal === "registerBankAccount" && (
                 <BankDetailsTab
                   language={language}
@@ -147,16 +140,6 @@ const AccountDetailsModal = ({
                   setFormData={setFormData}
                 />
               )}
-
-              {/* Additional conditional rendering for other modals */}
-              <div className="absolute  bottom-2">
-                <button
-                  type="submit"
-                  className="w-full px-6 py-2 rounded-full  bg-bgRed text-white  mt-4"
-                >
-                  {language === "bn" ? "জমা দিন" : "Submit"}
-                </button>
-              </div>
             </form>
           </div>
         </div>

@@ -160,6 +160,15 @@ const EWalletDetailsTab = ({ language, formData, handleInputChange }) => {
           </div>
         </div>
       </div>
+      {/* Additional conditional rendering for other modals */}
+      <div className="absolute  bottom-10">
+        <button
+          type="submit"
+          className="w-full px-6 py-2 rounded-full  bg-bgRed text-white  mt-4"
+        >
+          {language === "bn" ? "জমা দিন" : "Submit"}
+        </button>
+      </div>
     </div>
   );
 };

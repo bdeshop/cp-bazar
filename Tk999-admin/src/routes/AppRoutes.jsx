@@ -40,6 +40,9 @@ import AllUsers from "../pages/AllUsers";
 import AddProvider from "../pages/AddProvider";
 import AddGame from "../pages/AddGame";
 import BalanceTransferController from "../pages/BalanceTransferController";
+import AddWithdrawMethod from "../pages/AddWithdrawMethod";
+import WithdrawRequest from "../pages/WithdrawRequest";
+import WithdrawHistory from "../pages/WithdrawHistory";
 
 const AppRoutes = () => (
   <Routes>
@@ -113,6 +116,9 @@ const AppRoutes = () => (
       path="/balance-tranasfer-control"
       element={<BalanceTransferController />}
     />
+    <Route path="/add-withdraw-method" element={<AddWithdrawMethod />} />
+    <Route path="/withdraw-request" element={<WithdrawRequest />} />
+    <Route path="/withdraw-history" element={<WithdrawHistory />} />
   </Routes>
 );
 
