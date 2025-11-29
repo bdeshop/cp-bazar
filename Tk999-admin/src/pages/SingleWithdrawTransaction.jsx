@@ -1,11 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { FaArrowLeft, FaSync, FaEdit, FaChevronDown, FaUser, FaCreditCard, FaMoneyBillWave, FaClock, FaFile, FaExclamation } from 'react-icons/fa';
-import styled from 'styled-components';
-import { baseURL, baseURL_For_IMG_UPLOAD } from '../utils/baseURL';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import {
+  FaArrowLeft,
+  FaSync,
+  FaEdit,
+  FaChevronDown,
+  FaUser,
+  FaCreditCard,
+  FaMoneyBillWave,
+  FaClock,
+  FaFile,
+  FaExclamation,
+} from "react-icons/fa";
+import styled from "styled-components";
+import { API_URL, baseURL, baseURL_For_IMG_UPLOAD } from "../utils/baseURL";
 
-// Styled Components (Reusing from TransactionDetails)
+// Styled Components (একদম আগের মতোই)
 const DashboardContainer = styled.div`
   padding: 2rem;
   background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
@@ -31,7 +42,7 @@ const Sidebar = styled.div`
     flex: none;
     width: 100%;
     padding: 1.5rem;
-    ${props => !props.isOpen && 'display: none;'}
+    ${(props) => !props.isOpen && "display: none;"}
   }
 `;
 
@@ -74,11 +85,17 @@ const Header = styled.div`
   background: linear-gradient(90deg, #93c5fd 0%, #bfdbfe 100%);
   border-radius: 0.75rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  animation: fadeIn 0.5s ease;
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
+  animation: fadeIn 0.5s ease;
   @media (max-width: 480px) {
     flex-direction: column;
     gap: 1rem;
@@ -115,7 +132,7 @@ const ActionButton = styled.button`
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  background: ${({ bgColor }) => bgColor || '#3b82f6'};
+  background: ${({ bgColor }) => bgColor || "#3b82f6"};
   color: #ffffff;
   font-size: 0.875rem;
   font-weight: 600;
@@ -124,7 +141,7 @@ const ActionButton = styled.button`
   transition: all 0.3s ease;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   &:hover {
-    background: ${({ hoverBgColor }) => hoverBgColor || '#2563eb'};
+    background: ${({ hoverBgColor }) => hoverBgColor || "#2563eb"};
     transform: scale(1.05);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   }
@@ -158,9 +175,6 @@ const SectionTitle = styled.h2`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  @media (max-width: 768px) {
-    font-size: 1.125rem;
-  }
 `;
 
 const DetailGrid = styled.div`
@@ -184,9 +198,6 @@ const DetailCard = styled.div`
     transform: translateY(-4px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
     border: 1px solid #93c5fd;
-  }
-  @media (max-width: 768px) {
-    padding: 1rem;
   }
 `;
 
@@ -212,9 +223,6 @@ const DetailValue = styled.div`
     border-radius: 0.5rem;
     margin-top: 0.75rem;
     border: 1px solid #e5e7eb;
-    @media (max-width: 768px) {
-      max-width: 120px;
-    }
   }
 `;
 
@@ -223,18 +231,19 @@ const StatusBadge = styled.span`
   border-radius: 2rem;
   font-size: 0.75rem;
   font-weight: 600;
+  color: white;
   ${({ status }) => {
     switch (status) {
-      case 'completed':
-        return `background: #22c55e; color: #ffffff;`;
-      case 'pending':
-        return `background: #f59e0b; color: #ffffff;`;
-      case 'failed':
-        return `background: #ef4444; color: #ffffff;`;
-      case 'cancelled':
-        return `background: #6b7280; color: #ffffff;`;
+      case "completed":
+        return "background: #22c55e;";
+      case "pending":
+        return "background: #f59e0b;";
+      case "failed":
+        return "background: #ef4444;";
+      case "cancelled":
+        return "background: #6b7280;";
       default:
-        return `background: #3b82f6; color: #ffffff;`;
+        return "background: #3b82f6;";
     }
   }}
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -270,9 +279,6 @@ const Modal = styled.div`
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
-  @media (max-width: 768px) {
-    align-items: flex-end;
-  }
 `;
 
 const ModalContent = styled.div`
@@ -284,13 +290,14 @@ const ModalContent = styled.div`
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
   animation: slideUp 0.4s ease;
   @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @media (max-width: 768px) {
-    padding: 1.5rem;
-    max-width: 100%;
-    border-radius: 1rem 1rem 0 0;
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 `;
 
@@ -300,9 +307,6 @@ const ModalTitle = styled.h3`
   color: #1e293b;
   margin-bottom: 1.5rem;
   text-align: center;
-  @media (max-width: 480px) {
-    font-size: 1.25rem;
-  }
 `;
 
 const Form = styled.form`
@@ -326,7 +330,6 @@ const Input = styled.input`
   border-radius: 0.5rem;
   font-size: 0.875rem;
   background: #f8fafc;
-  transition: all 0.3s ease;
   &:focus {
     outline: none;
     border-color: #3b82f6;
@@ -340,18 +343,12 @@ const Textarea = styled.textarea`
   border-radius: 0.375rem;
   font-size: 0.875rem;
   background: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: border-color 0.2s;
-  resize: vertical;
   min-height: 100px;
+  resize: vertical;
   &:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-  @media (max-width: 640px) {
-    padding: 0.5rem;
-    font-size: 0.875rem;
   }
 `;
 
@@ -361,16 +358,10 @@ const Select = styled.select`
   border-radius: 0.375rem;
   font-size: 0.875rem;
   background: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: border-color 0.2s;
   &:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-  @media (max-width: 640px) {
-    padding: 0.5rem;
-    font-size: 0.875rem;
   }
 `;
 
@@ -378,28 +369,19 @@ const Button = styled.button`
   padding: 0.75rem;
   border-radius: 0.375rem;
   border: none;
-  background: ${props => props.bgColor || '#3b82f6'};
+  background: ${(props) => props.bgColor || "#3b82f6"};
   color: white;
   font-size: 0.875rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.2s, transform 0.1s;
-  position: relative;
   &:hover {
-    background: ${props => props.hoverBgColor || '#2563eb'};
-    transform: translateY(-1px);
+    background: ${(props) => props.hoverBgColor || "#2563eb"};
   }
   &:disabled {
     background: #d1d5db;
     cursor: not-allowed;
-    transform: none;
-  }
-  @media (max-width: 640px) {
-    padding: 0.5rem;
-    font-size: 0.75rem;
   }
 `;
 
@@ -408,9 +390,8 @@ const Message = styled.div`
   border-radius: 0.5rem;
   text-align: center;
   font-size: 0.875rem;
-  ${({ error }) => error
-    ? `background: #fef2f2; color: #dc2626;`
-    : `background: #f0fdf4; color: #16a34a;`}
+  background: ${(props) => (props.error ? "#fef2f2" : "#f0fdf4")};
+  color: ${(props) => (props.error ? "#dc2626" : "#16a34a")};
 `;
 
 export default function SingleWithdrawTransaction() {
@@ -418,33 +399,38 @@ export default function SingleWithdrawTransaction() {
   const navigate = useNavigate();
   const [transaction, setTransaction] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ amount: '', status: 'pending', reason: '' });
-  const [success, setSuccess] = useState('');
+  const [formData, setFormData] = useState({
+    amount: "",
+    status: "pending",
+    reason: "",
+  });
+  const [success, setSuccess] = useState("");
   const [showSidebar, setShowSidebar] = useState(false);
+  console.log(transaction)
 
   const fetchTransaction = async () => {
     setLoading(true);
-    setError('');
+    setError("");
     try {
-      const response = await axios.get(`${baseURL}/withdraw-transaction/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      if (!response.data.success || !response.data.data) {
-        throw new Error('No transaction data received from server');
-      }
-      setTransaction(response.data.data);
+      const { data } = await axios.get(
+        `${API_URL}/api/withdraw-transaction/${id}`
+       
+      );
+
+
+      if (!data.success || !data.data) throw new Error("Invalid response");
+
+      setTransaction(data.data);
+      
       setFormData({
-        amount: response.data.data.amount || '',
-        status: response.data.data.status || 'pending',
-        reason: response.data.data.reason || '',
+        amount: data.data.amount,
+        status: data.data.status || "pending",
+        reason: data.data.reason || "",
       });
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-        `Failed to fetch transaction details (ID: ${id}). Please check the transaction ID or try again.`
-      );
+      setError(err.response?.data?.msg || "Failed to load transaction");
     } finally {
       setLoading(false);
     }
@@ -456,32 +442,31 @@ export default function SingleWithdrawTransaction() {
 
   const openEditModal = () => {
     setShowModal(true);
-    setError('');
-    setSuccess('');
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError("");
+    setSuccess("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setLoading(true);
+
     try {
-      const response = await axios.put(`${baseURL}/withdraw-transaction/${id}`, formData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setSuccess('Transaction updated successfully');
+      const { data } = await axios.put(
+        `${API_URL}/api/withdraw-transaction/${id}`,
+        formData
+    
+      );
+
+      setSuccess(data.msg || "Updated successfully!");
       await fetchTransaction();
       setTimeout(() => {
         setShowModal(false);
-        setSuccess('');
-      }, 1500);
+        setSuccess("");
+      }, 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update transaction');
+      setError(err.response?.data?.msg || "Update failed");
     } finally {
       setLoading(false);
     }
@@ -498,47 +483,22 @@ export default function SingleWithdrawTransaction() {
   if (error || !transaction) {
     return (
       <DashboardContainer>
-        <Sidebar isOpen={showSidebar}>
-          <ButtonContainer>
-            <ActionButton
-              onClick={() => navigate('/Withdraw-transaction')}
-              bgColor="#3b82f6"
-              hoverBgColor="#2563eb"
-            >
-              <FaArrowLeft /> Back
-            </ActionButton>
-            <ActionButton
-              onClick={fetchTransaction}
-              disabled={loading}
-              bgColor="#6b7280"
-              hoverBgColor="#4b5563"
-            >
-              <FaSync /> Retry
-            </ActionButton>
-          </ButtonContainer>
-        </Sidebar>
         <MainContent>
           <Header>
-            <Title><FaUser /> Withdraw Transaction Details</Title>
+            <Title>Withdraw Transaction</Title>
             <ButtonContainer>
               <ActionButton
-                onClick={() => navigate('/Withdraw-transaction')}
+                onClick={() => navigate("/Withdraw-transaction")}
                 bgColor="#3b82f6"
-                hoverBgColor="#2563eb"
               >
                 <FaArrowLeft /> Back
               </ActionButton>
-              <ActionButton
-                onClick={fetchTransaction}
-                disabled={loading}
-                bgColor="#6b7280"
-                hoverBgColor="#4b5563"
-              >
+              <ActionButton onClick={fetchTransaction} bgColor="#6b7280">
                 <FaSync /> Retry
               </ActionButton>
             </ButtonContainer>
           </Header>
-          <ErrorAlert>{error || 'No transaction data available.'}</ErrorAlert>
+          <ErrorAlert>{error || "Transaction not found"}</ErrorAlert>
         </MainContent>
       </DashboardContainer>
     );
@@ -548,19 +508,21 @@ export default function SingleWithdrawTransaction() {
     <DashboardContainer>
       <Sidebar isOpen={showSidebar}>
         <Section>
-          <SectionTitle><FaUser /> User Information</SectionTitle>
+          <SectionTitle>User Information</SectionTitle>
           <DetailGrid>
             <DetailCard>
-              <DetailLabel><FaUser /> Name</DetailLabel>
-              <DetailValue>{transaction.userId?.name || 'Unknown'}</DetailValue>
+              <DetailLabel>Name</DetailLabel>
+              <DetailValue>{transaction.userId?.username || "N/A"}</DetailValue>
             </DetailCard>
             <DetailCard>
-              <DetailLabel><FaUser /> Phone Number</DetailLabel>
-              <DetailValue>{transaction.userId?.phoneNumber || 'No Phone Number'}</DetailValue>
+              <DetailLabel>Phone</DetailLabel>
+              <DetailValue>
+                {transaction.userId?.whatsapp || "N/A"}
+              </DetailValue>
             </DetailCard>
             <DetailCard>
-              <DetailLabel><FaUser /> Email</DetailLabel>
-              <DetailValue>{transaction.userId?.email || 'No Email'}</DetailValue>
+              <DetailLabel>Email</DetailLabel>
+              <DetailValue>{transaction.userId?.email || "N/A"}</DetailValue>
             </DetailCard>
           </DetailGrid>
         </Section>
@@ -568,181 +530,166 @@ export default function SingleWithdrawTransaction() {
 
       <MainContent>
         <Header>
-          <Title><FaUser /> Withdraw Transaction Details</Title>
+          <Title>Withdraw Transaction Details</Title>
           <ButtonContainer>
             <ActionButton
-              onClick={() => navigate('/Withdraw-transaction')}
+              onClick={() => navigate("/Withdraw-transaction")}
               bgColor="#3b82f6"
-              hoverBgColor="#2563eb"
             >
               <FaArrowLeft /> Back
             </ActionButton>
-            <ActionButton
-              onClick={fetchTransaction}
-              disabled={loading}
-              bgColor="#6b7280"
-              hoverBgColor="#4b5563"
-            >
+            <ActionButton onClick={fetchTransaction} bgColor="#6b7280">
               <FaSync /> Refresh
             </ActionButton>
             <ActionButton
               onClick={openEditModal}
               bgColor="#f59e0b"
               hoverBgColor="#d97706"
-              disabled={transaction.status === 'completed'}
+              disabled={transaction.status !== "pending"}
             >
-              <FaEdit /> Edit
+              <FaEdit /> Edit Status
             </ActionButton>
             <SidebarToggle onClick={() => setShowSidebar(!showSidebar)}>
-              <FaUser /> User Info <FaChevronDown />
+              User Info <FaChevronDown />
             </SidebarToggle>
           </ButtonContainer>
         </Header>
 
         <Section>
-          <SectionTitle><FaCreditCard /> Transaction Information</SectionTitle>
+          <SectionTitle>Transaction Info</SectionTitle>
           <DetailGrid>
             <DetailCard>
-              <DetailLabel><FaClock /> Status</DetailLabel>
+              <DetailLabel>Status</DetailLabel>
               <DetailValue>
-                <StatusBadge status={transaction.status}>{transaction.status}</StatusBadge>
+                <StatusBadge status={transaction.status}>
+                  {transaction.status}
+                </StatusBadge>
               </DetailValue>
             </DetailCard>
             <DetailCard>
-              <DetailLabel><FaCreditCard /> Payment Method</DetailLabel>
+              <DetailLabel>Amount</DetailLabel>
+              <DetailValue>৳{transaction.amount}</DetailValue>
+            </DetailCard>
+            <DetailCard>
+              <DetailLabel>Payment Method</DetailLabel>
               <DetailValue>
-                {transaction.paymentMethod ? (
-                  <>
-                    <p><strong>Name:</strong> {transaction.paymentMethod.methodName || 'Not Specified'}</p>
-                    <p><strong>Gateway:</strong> {transaction.paymentMethod.gateway || 'Not Specified'}</p>
-                    {transaction.paymentMethod.methodImage && (
-                      <img
-                        src={`${baseURL_For_IMG_UPLOAD}s/${transaction.paymentMethod.methodImage}`}
-                        alt="Payment Method"
-                        onError={(e) => (e.target.style.display = 'none')}
-                      />
-                    )}
-                  </>
-                ) : (
-                  'No Payment Method Information'
-                )}
+                {transaction.paymentMethod?.methodName || "—"}
               </DetailValue>
             </DetailCard>
             <DetailCard>
-              <DetailLabel><FaCreditCard /> Channel</DetailLabel>
-              <DetailValue>{transaction.channel || 'Not Specified'}</DetailValue>
+              <DetailLabel>Channel</DetailLabel>
+              <DetailValue>{transaction.channel || "—"}</DetailValue>
             </DetailCard>
             <DetailCard>
-              <DetailLabel><FaMoneyBillWave /> Amount</DetailLabel>
-              <DetailValue>{typeof transaction.amount === 'number' ? `৳${transaction.amount}` : 'Not Specified'}</DetailValue>
-            </DetailCard>
-            <DetailCard>
-              <DetailLabel><FaExclamation /> Reason</DetailLabel>
-              <DetailValue>{transaction.reason || 'No Reason Specified'}</DetailValue>
+              <DetailLabel>Reason</DetailLabel>
+              <DetailValue>{transaction.reason || "—"}</DetailValue>
             </DetailCard>
           </DetailGrid>
         </Section>
 
         <Section>
-          <SectionTitle><FaFile /> User Inputs</SectionTitle>
+          <SectionTitle>User Inputs</SectionTitle>
           <DetailGrid>
-            {transaction.userInputs && Array.isArray(transaction.userInputs) && transaction.userInputs.length > 0 ? (
-              transaction.userInputs.map((input, index) => (
-                <DetailCard key={index}>
-                  <DetailLabel><FaFile /> {input.label || 'Input'}</DetailLabel>
+            {transaction.userInputs?.length > 0 ? (
+              transaction.userInputs.map((inp, i) => (
+                <DetailCard key={i}>
+                  <DetailLabel>{inp.label}</DetailLabel>
                   <DetailValue>
-                    {input.type === 'file' ? (
+                    {inp.type === "file" ? (
                       <img
-                        src={`${baseURL_For_IMG_UPLOAD}s/${input.value}`}
-                        alt={input.label || 'User Input File'}
-                        onError={(e) => (e.target.style.display = 'none')}
+                        src={`${API_URL}/uploads/method-icons/${inp.value}`}
+                        alt="file"
+                        onError={(e) => (e.target.style.display = "none")}
                       />
                     ) : (
-                      <p>{input.value || 'Not Specified'} ({input.type || 'Unknown Type'})</p>
+                      <p>{inp.value}</p>
                     )}
                   </DetailValue>
                 </DetailCard>
               ))
             ) : (
               <DetailCard>
-                <DetailLabel><FaFile /> User Inputs</DetailLabel>
-                <DetailValue>No User Inputs</DetailValue>
+                <DetailValue>No inputs provided</DetailValue>
               </DetailCard>
             )}
           </DetailGrid>
         </Section>
 
         <Section>
-          <SectionTitle><FaClock /> Metadata</SectionTitle>
+          <SectionTitle>Timeline</SectionTitle>
           <DetailGrid>
             <DetailCard>
-              <DetailLabel><FaClock /> Created At</DetailLabel>
+              <DetailLabel>Requested At</DetailLabel>
               <DetailValue>
-                {transaction.createdAt && !isNaN(new Date(transaction.createdAt))
-                  ? new Date(transaction.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
-                  : 'Not Available'}
+                {new Date(transaction.createdAt).toLocaleString()}
               </DetailValue>
             </DetailCard>
             <DetailCard>
-              <DetailLabel><FaClock /> Updated At</DetailLabel>
+              <DetailLabel>Updated At</DetailLabel>
               <DetailValue>
-                {transaction.updatedAt && !isNaN(new Date(transaction.updatedAt))
-                  ? new Date(transaction.updatedAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
-                  : 'Not Available'}
+                {new Date(transaction.updatedAt).toLocaleString()}
               </DetailValue>
             </DetailCard>
           </DetailGrid>
         </Section>
       </MainContent>
 
+      {/* Edit Modal */}
       {showModal && (
-        <Modal>
-          <ModalContent>
-            <ModalTitle>Edit Withdraw Transaction</ModalTitle>
+        <Modal onClick={() => setShowModal(false)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <ModalTitle>Update Transaction Status</ModalTitle>
             {error && <Message error>{error}</Message>}
             {success && <Message>{success}</Message>}
+
             <Form onSubmit={handleSubmit}>
-              <Label>Amount</Label>
-              <Input
-                type="number"
-                name="amount"
-                value={formData.amount}
-                onChange={handleInputChange}
-                required
-                min="200"
-                max="30000"
-                disabled={loading || formData.status === 'completed'}
-              />
-              <Label>Status</Label>
-              <Select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
+              <div>
+                <Label>Amount (Cannot change)</Label>
+                <Input type="number" value={formData.amount} disabled />
+              </div>
+
+              <div>
+                <Label>Status</Label>
+                <Select
+                  name="status"
+                  value={formData.status}
+                  onChange={(e) =>
+                    setFormData({ ...formData, status: e.target.value })
+                  }
+                >
+                  <option value="pending">Pending</option>
+                  <option value="completed">Completed (Approve)</option>
+                  <option value="failed">Reject</option>
+                  <option value="cancelled">Cancel & Refund</option>
+                </Select>
+              </div>
+
+              {(formData.status === "failed" ||
+                formData.status === "cancelled") && (
+                <div>
+                  <Label>Reason (Required)</Label>
+                  <Textarea
+                    name="reason"
+                    value={formData.reason}
+                    onChange={(e) =>
+                      setFormData({ ...formData, reason: e.target.value })
+                    }
+                    placeholder="Enter reason for rejection/cancellation"
+                    required
+                  />
+                </div>
+              )}
+
+              <div
+                style={{ display: "flex", gap: "0.75rem", marginTop: "1rem" }}
               >
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-                <option value="failed">Failed</option>
-                <option value="cancelled">Cancelled</option>
-              </Select>
-              <Label>Reason {['failed', 'cancelled'].includes(formData.status) && '*'}</Label>
-              <Textarea
-                name="reason"
-                value={formData.reason}
-                onChange={handleInputChange}
-                placeholder="Enter reason for failed or cancelled status"
-                disabled={loading}
-                required={['failed', 'cancelled'].includes(formData.status)}
-              />
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
                 <Button type="submit" disabled={loading}>
-                  Update
+                  {loading ? "Updating..." : "Update Status"}
                 </Button>
                 <Button
                   bgColor="#6b7280"
-                  hoverBgColor="#4b5563"
                   type="button"
                   onClick={() => setShowModal(false)}
-                  disabled={loading}
                 >
                   Cancel
                 </Button>

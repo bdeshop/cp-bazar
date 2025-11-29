@@ -1,21 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import axios from 'axios';
-import { FaEdit, FaTrash, FaSearch, FaEye, FaSync, FaFilter, FaChevronDown } from 'react-icons/fa';
-import { useNavigate, useParams } from 'react-router-dom';
-import { baseURL } from '../utils/baseURL';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import axios from "axios";
+import {
+  FaEdit,
+  FaTrash,
+  FaSearch,
+  FaEye,
+  FaSync,
+  FaFilter,
+  FaChevronDown,
+} from "react-icons/fa";
+import { useNavigate, useParams } from "react-router-dom";
+import { API_URL } from "../utils/baseURL";
 
-// Styled Components (Reusing from DepositTransaction)
+// Styled Components
 const Container = styled.div`
   padding: 1.5rem;
   background: #f8fafc;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
   @media (max-width: 640px) {
     padding: 1rem;
-    gap: 1rem;
   }
 `;
 
@@ -25,28 +29,32 @@ const Header = styled.div`
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
-  @media (max-width: 640px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 `;
 
 const Title = styled.h2`
   font-size: 1.75rem;
   font-weight: 600;
   color: #1e293b;
-  @media (max-width: 640px) {
-    font-size: 1.5rem;
-  }
 `;
 
 const ControlWrapper = styled.div`
   display: flex;
-  flex-wrap: wrap;
   gap: 0.75rem;
+  align-items: center;
+`;
+
+const FilterToggle = styled.button`
+  display: none;
   @media (max-width: 640px) {
-    width: 100%;
-    justify-content: space-between;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    cursor: pointer;
   }
 `;
 
@@ -57,24 +65,8 @@ const SearchFilterWrapper = styled.div`
   margin-bottom: 1rem;
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
+    display: ${(props) => (props.isOpen ? "grid" : "none")};
     gap: 0.5rem;
-    display: ${props => props.isOpen ? 'block' : 'none'};
-  }
-`;
-
-const FilterToggle = styled.button`
-  display: none;
-  @media (max-width: 640px) {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    border: 1px solid #e2e8f0;
-    background: white;
-    font-size: 0.875rem;
-    color: #1e293b;
-    cursor: pointer;
   }
 `;
 
@@ -84,37 +76,10 @@ const Input = styled.input`
   border-radius: 0.375rem;
   font-size: 0.875rem;
   background: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: border-color 0.2s;
   &:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-  @media (max-width: 640px) {
-    padding: 0.5rem;
-    font-size: 0.875rem;
-  }
-`;
-
-const Textarea = styled.textarea`
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  background: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: border-color 0.2s;
-  resize: vertical;
-  min-height: 100px;
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-  @media (max-width: 640px) {
-    padding: 0.5rem;
-    font-size: 0.875rem;
   }
 `;
 
@@ -122,111 +87,84 @@ const Select = styled.select`
   padding: 0.75rem;
   border: 1px solid #e2e8f0;
   border-radius: 0.375rem;
-  font-size: 0.875rem;
   background: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: border-color 0.2s;
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-  @media (max-width: 640px) {
-    padding: 0.5rem;
-    font-size: 0.875rem;
-  }
 `;
 
 const Button = styled.button`
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  border: none;
-  background: ${props => props.bgColor || '#3b82f6'};
+  padding: 0.75rem 1rem;
+  background: ${(props) => props.bg || "#3b82f6"};
   color: white;
-  font-size: 0.875rem;
+  border: none;
+  border-radius: 0.375rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.2s, transform 0.1s;
-  position: relative;
+  gap: 0.5rem;
+  font-size: 0.875rem;
   &:hover {
-    background: ${props => props.hoverBgColor || '#2563eb'};
-    transform: translateY(-1px);
+    opacity: 0.9;
   }
   &:disabled {
-    background: #d1d5db;
+    opacity: 0.6;
     cursor: not-allowed;
-    transform: none;
-  }
-  @media (max-width: 640px) {
-    padding: 0.5rem;
-    font-size: 0.75rem;
-  }
-`;
-
-const Tooltip = styled.span`
-  visibility: hidden;
-  position: absolute;
-  top: -2rem;
-  background: #1e293b;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  z-index: 10;
-  ${Button}:hover & {
-    visibility: visible;
-  }
-  @media (max-width: 640px) {
-    display: none;
   }
 `;
 
 const TableWrapper = styled.div`
   background: white;
   border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow-x: auto;
-  @media (max-width: 640px) {
-    background: transparent;
-    box-shadow: none;
-  }
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 `;
 
 const Table = styled.table`
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  @media (max-width: 640px) {
-    display: none;
-  }
+  border-collapse: collapse;
 `;
 
 const Th = styled.th`
-  padding: 0.75rem 1rem;
-  background: #f1f5f9;
-  color: #1e293b;
+  background: #f8fafc;
+  padding: 1rem;
   text-align: left;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  &:first-child {
-    border-top-left-radius: 0.5rem;
-  }
-  &:last-child {
-    border-top-right-radius: 0.5rem;
-  }
 `;
 
 const Td = styled.td`
-  padding: 0.75rem 1rem;
-  border-top: 1px solid #e5e7eb;
+  padding: 1rem;
+  border-top: 1px solid #e2e8f0;
   font-size: 0.875rem;
-  color: #374151;
+`;
+
+const StatusBadge = styled.span`
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  background: ${(props) => {
+    switch (props.status) {
+      case "completed":
+        return "#22c55e";
+      case "pending":
+        return "#f59e0b";
+      case "failed":
+        return "#ef4444";
+      case "cancelled":
+        return "#6b7280";
+      default:
+        return "#3b82f6";
+    }
+  }};
+`;
+
+const ActionButtons = styled.div`
+  display: flex;
+  gap: 0.5rem;
 `;
 
 const MobileCard = styled.div`
@@ -236,7 +174,7 @@ const MobileCard = styled.div`
     background: white;
     border-radius: 0.5rem;
     padding: 1rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 `;
@@ -245,53 +183,39 @@ const MobileCardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
-`;
-
-const MobileCardTitle = styled.h3`
-  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
   font-weight: 600;
-  color: #1e293b;
 `;
 
-const MobileCardContent = styled.div`
-  display: grid;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  color: #374151;
-`;
-
-const MobileCardRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-`;
-
-const StatusBadge = styled.span`
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.75rem;
+const Message = styled.div`
+  padding: 1rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  background: ${(props) => (props.error ? "#fee2e2" : "#f0fdf4")};
+  color: ${(props) => (props.error ? "#dc2626" : "#16a34a")};
   font-weight: 500;
-  color: white;
-  background: ${props => {
-    switch (props.status) {
-      case 'completed': return '#22c55e';
-      case 'pending': return '#f59e0b';
-      case 'failed': return '#ef4444';
-      case 'cancelled': return '#6b7280';
-      default: return '#3b82f6';
-    }
-  }};
 `;
 
-const ActionButtons = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  @media (max-width: 640px) {
-    gap: 0.25rem;
-    justify-content: flex-end;
+const LoadingSpinner = styled.div`
+  text-align: center;
+  padding: 3rem;
+  .spinner {
+    border: 4px solid #f3f4f6;
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 
+// Modal Styles
 const Modal = styled.div`
   position: fixed;
   inset: 0;
@@ -300,475 +224,391 @@ const Modal = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 1rem;
-  @media (max-width: 640px) {
-    align-items: flex-end;
-    padding: 0;
-  }
 `;
 
 const ModalContent = styled.div`
   background: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
+  padding: 2rem;
+  border-radius: 0.75rem;
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.2s ease;
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  @media (max-width: 640px) {
-    max-width: 100%;
-    border-radius: 0.5rem 0.5rem 0 0;
-    padding: 1rem;
-  }
-`;
-
-const ModalTitle = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 1rem;
-  @media (max-width: 640px) {
-    font-size: 1rem;
-  }
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  @media (max-width: 640px) {
-    gap: 0.75rem;
-  }
-`;
-
-const Label = styled.label`
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #1e293b;
-  @media (max-width: 640px) {
-    font-size: 0.75rem;
-  }
-`;
-
-const Message = styled.p`
-  font-size: 0.75rem;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  ${props => props.error ? `
-    color: #dc2626;
-    background: #fef2f2;
-  ` : `
-    color: #16a34a;
-    background: #f0fdf4;
-  `}
-  @media (max-width: 640px) {
-    font-size: 0.6875rem;
-  }
-`;
-
-const LoadingSpinner = styled.div`
-  display: inline-block;
-  border: 3px solid #e5e7eb;
-  border-top: 3px solid #3b82f6;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  animation: spin 1s linear infinite;
-  margin: 1rem auto;
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  @media (max-width: 640px) {
-    width: 20px;
-    height: 20px;
-    border-width: 2px;
-  }
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
 `;
 
 export default function WithdrawTransaction() {
   const [transactions, setTransactions] = useState([]);
-  const [filteredTransactions, setFilteredTransactions] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filtered, setFiltered] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ amount: '', status: 'pending', reason: '' });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [formData, setFormData] = useState({
+    amount: "",
+    status: "pending",
+    reason: "",
+  });
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+
   const navigate = useNavigate();
+  const { filter } = useParams();
 
-  const { filter } = useParams(); // Extract filter parameter from URL
-
+  // Handle URL filter (success → completed, reject → failed)
   useEffect(() => {
-    // Set filterStatus based on URL filter parameter
-    if (filter && ['pending', 'success', 'reject'].includes(filter)) {
-      setFilterStatus(filter === 'success' ? 'completed' : filter === 'reject' ? 'failed' : filter);
+    if (filter === "success") setFilterStatus("completed");
+    else if (filter === "reject") setFilterStatus("failed");
+    else if (["pending", "completed", "failed", "cancelled"].includes(filter)) {
+      setFilterStatus(filter);
     } else {
-      setFilterStatus(''); // No filter, show all transactions
+      setFilterStatus("");
     }
-    fetchTransactions();
   }, [filter]);
 
-
+  // Fetch all transactions once
   useEffect(() => {
     fetchTransactions();
   }, []);
 
+  // Apply filter
   useEffect(() => {
     if (filterStatus) {
-      setFilteredTransactions(
-        transactions.filter((transaction) => transaction.status === filterStatus)
-      );
+      setFiltered(transactions.filter((t) => t.status === filterStatus));
     } else {
-      setFilteredTransactions(transactions);
+      setFiltered(transactions);
     }
   }, [transactions, filterStatus]);
 
-  const fetchTransactions = async (query = '') => {
+  const fetchTransactions = async (query = "") => {
     setLoading(true);
+    setError("");
     try {
-      let url = `${baseURL}/withdraw-transaction`;
-      if (query) url = `${baseURL}/withdraw-search-transaction/search?query=${encodeURIComponent(query)}`;
-      
-      const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      const url = query
+        ? `${API_URL}/api/withdraw-search-transaction/search?query=${encodeURIComponent(
+            query
+          )}`
+        : `${API_URL}/api/withdraw-transaction`;
+
+      const { data } = await axios.get(url, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      if (!response.data.success || !response.data.data) {
-        throw new Error('No transaction data received');
-      }
-      setTransactions(response.data.data.slice().reverse());
-      setError('');
+
+      if (!data.success) throw new Error(data.message || "Failed");
+
+      const reversed = data.data.reverse();
+      setTransactions(reversed);
+      setFiltered(reversed);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Failed to fetch transactions';
-      setError(errorMessage);
+      setError(err.response?.data?.message || "Failed to load transactions");
     } finally {
       setLoading(false);
     }
   };
 
   const handleSearch = () => {
-    if (!searchQuery.trim() && !filterStatus) {
-      setError('Please enter a search term or select a filter.');
+    if (!searchQuery.trim()) {
+      setError("Enter something to search");
       return;
     }
-    if (searchQuery.trim()) {
-      fetchTransactions(searchQuery);
-    }
+    fetchTransactions(searchQuery);
   };
 
   const handleRefresh = () => {
-    setSearchQuery('');
-    setFilterStatus('');
-    setError('');
+    setSearchQuery("");
+    setFilterStatus("");
     setShowFilters(false);
+    setError("");
     fetchTransactions();
   };
 
-  const openModal = (transaction) => {
-    setEditId(transaction._id);
+  const openModal = (txn) => {
+    setEditId(txn._id);
     setFormData({
-      amount: transaction.amount,
-      status: transaction.status,
-      reason: transaction.reason || '',
+      amount: txn.amount,
+      status: txn.status,
+      reason: txn.reason || "",
     });
     setShowModal(true);
-    setError('');
-    setSuccess('');
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-    setLoading(true);
-
-    // Validate reason for failed or cancelled status
-    if (['failed', 'cancelled'].includes(formData.status) && !formData.reason.trim()) {
-      setError('Reason is required for failed or cancelled status');
-      setLoading(false);
+    if (
+      ["failed", "cancelled"].includes(formData.status) &&
+      !formData.reason.trim()
+    ) {
+      setError("Reason is required");
       return;
     }
 
+    setLoading(true);
     try {
-      const url = `${baseURL}/withdraw-transaction/${editId}`;
-      const response = await axios.put(url, formData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setSuccess('Transaction updated successfully');
-      await fetchTransactions(searchQuery);
+      await axios.put(
+        `${API_URL}/api/withdraw-transaction/${editId}`,
+        formData
+      );
+      setSuccess("Updated successfully!");
+      fetchTransactions();
       setTimeout(() => {
         setShowModal(false);
-        setSuccess('');
+        setSuccess("");
       }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update transaction');
+      setError(err.response?.data?.message || "Update failed");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this transaction?')) return;
-    setLoading(true);
+    if (!window.confirm("Delete this transaction?")) return;
     try {
-      await axios.delete(`${baseURL}/withdraw-transaction/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setSuccess('Transaction deleted successfully');
-      await fetchTransactions(searchQuery);
-      setTimeout(() => setSuccess(''), 1500);
+      await axios.delete(`${API_URL}/api/withdraw-transaction/${id}`);
+      setSuccess("Deleted!");
+      fetchTransactions();
+      setTimeout(() => setSuccess(""), 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete transaction');
-    } finally {
-      setLoading(false);
+      setError(err.response?.data?.message || "Delete failed");
     }
-  };
-
-  const viewDetails = (id) => {
-    navigate(`/Withdraw-transaction/${id}`);
   };
 
   return (
     <Container>
+      {/* Header */}
       <Header>
         <Title>Withdraw Transactions</Title>
         <ControlWrapper>
           <FilterToggle onClick={() => setShowFilters(!showFilters)}>
             <FaFilter /> Filters <FaChevronDown />
           </FilterToggle>
-          <Button onClick={handleRefresh} disabled={loading} title="Refresh">
-            <FaSync />
-            <Tooltip>Refresh</Tooltip>
+          <Button onClick={handleRefresh} disabled={loading}>
+            <FaSync /> {loading ? "Loading..." : "Refresh"}
           </Button>
         </ControlWrapper>
       </Header>
 
+      {/* Search & Filter */}
       <SearchFilterWrapper isOpen={showFilters}>
         <Input
           type="text"
-          placeholder="Search by User ID, Name, or Email"
+          placeholder="Search by name, phone, email..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyPress={(e) => e.key === "Enter" && handleSearch()}
         />
         <Select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
         >
-          <option value="">All Statuses</option>
+          <option value="">All Status</option>
           <option value="pending">Pending</option>
-          <option value="completed">Completed</option>
-          <option value="failed">Failed</option>
+          <option value="completed">Success</option>
+          <option value="failed">Reject</option>
           <option value="cancelled">Cancelled</option>
         </Select>
-        <Button onClick={handleSearch} disabled={loading}>
-          <FaSearch />
-          <Tooltip>Search</Tooltip>
+        <Button
+          onClick={handleSearch}
+          disabled={loading || !searchQuery.trim()}
+        >
+          <FaSearch /> Search
         </Button>
       </SearchFilterWrapper>
 
+      {/* Messages */}
       {error && <Message error>{error}</Message>}
       {success && <Message>{success}</Message>}
 
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <>
-          <TableWrapper>
-            <Table>
-              <thead>
-                <tr>
-                  <Th>User</Th>
-                  <Th>Payment Method</Th>
-                  <Th>Channel</Th>
-                  <Th>Amount</Th>
-                  <Th>Status</Th>
-                  <Th>Reason</Th>
-                  <Th>Actions</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTransactions.map((transaction) => (
-                  <tr key={transaction._id}>
-                    <Td>
-                      {transaction.userId?.name || 'Unknown'}<br />
-                      ({transaction.userId?.phoneNumber})
-                    </Td>
-                    <Td>{transaction.paymentMethod?.methodName || 'Unknown'}</Td>
-                    <Td>{transaction?.channel || 'Unknown'}</Td>
-                    <Td>৳{transaction.amount}</Td>
-                    <Td>
-                      <StatusBadge status={transaction.status}>
-                        {transaction.status}
-                      </StatusBadge>
-                    </Td>
-                    <Td title={transaction.reason}>
-                      {transaction.reason.length > 5
-                        ? `${transaction.reason.slice(0, 5)}...`
-                        : transaction.reason}
-                    </Td>
-                    <Td>
-                      <ActionButtons>
-                        <Button
-                          bgColor="#22c55e"
-                          hoverBgColor="#16a34a"
-                          onClick={() => viewDetails(transaction._id)}
-                        >
-                          <FaEye />
-                          <Tooltip>View</Tooltip>
-                        </Button>
-                        <Button
-                          bgColor="#f59e0b"
-                          hoverBgColor="#d97706"
-                          onClick={() => openModal(transaction)}
-                          disabled={transaction.status === 'completed'}
-                        >
-                          <FaEdit />
-                          <Tooltip>Edit</Tooltip>
-                        </Button>
-                        <Button
-                          bgColor="#ef4444"
-                          hoverBgColor="#dc2626"
-                          onClick={() => handleDelete(transaction._id)}
-                          disabled={transaction.status === 'completed'}
-                        >
-                          <FaTrash />
-                          <Tooltip>Delete</Tooltip>
-                        </Button>
-                      </ActionButtons>
-                    </Td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </TableWrapper>
-
-          {filteredTransactions.map((transaction) => (
-            <MobileCard key={transaction._id}>
-              <MobileCardHeader>
-                <MobileCardTitle>
-                  {transaction.userId?.name || 'Unknown'}
-                </MobileCardTitle>
-                <StatusBadge status={transaction.status}>
-                  {transaction.status}
-                </StatusBadge>
-              </MobileCardHeader>
-              <MobileCardContent>
-                <MobileCardRow>
-                  <span>Phone:</span>
-                  <span>{transaction.userId?.phoneNumber}</span>
-                </MobileCardRow>
-                <MobileCardRow>
-                  <span>Payment:</span>
-                  <span>{transaction.paymentMethod?.methodName || 'Unknown'}</span>
-                </MobileCardRow>
-                <MobileCardRow>
-                  <span>Amount:</span>
-                  <span>৳{transaction.amount}</span>
-                </MobileCardRow>
-                <MobileCardRow>
-                  <span>Reason:</span>
-                  <span title={transaction.reason}>
-                    {transaction.reason.length > 4
-                      ? `${transaction.reason.slice(0, 4)}...`
-                      : transaction.reason}
-                  </span>
-                </MobileCardRow>
-              </MobileCardContent>
-              <ActionButtons>
-                <Button
-                  bgColor="#22c55e"
-                  hoverBgColor="#16a34a"
-                  onClick={() => viewDetails(transaction._id)}
-                >
-                  <FaEye />
-                </Button>
-                <Button
-                  bgColor="#f59e0b"
-                  hoverBgColor="#d97706"
-                  onClick={() => openModal(transaction)}
-                  disabled={transaction.status === 'completed'}
-                >
-                  <FaEdit />
-                </Button>
-                <Button
-                  bgColor="#ef4444"
-                  hoverBgColor="#dc2626"
-                  onClick={() => handleDelete(transaction._id)}
-                  disabled={transaction.status === 'completed'}
-                >
-                  <FaTrash />
-                </Button>
-              </ActionButtons>
-            </MobileCard>
-          ))}
-        </>
+      {/* Loading */}
+      {loading && (
+        <LoadingSpinner>
+          <div className="spinner"></div>
+        </LoadingSpinner>
       )}
 
+      {/* Table - Desktop */}
+      {!loading && filtered.length > 0 && (
+        <TableWrapper>
+          <Table>
+            <thead>
+              <tr>
+                <Th>User</Th>
+                <Th>Method</Th>
+                <Th>Channel</Th>
+                <Th>Amount</Th>
+                <Th>Status</Th>
+                <Th>Reason</Th>
+                <Th>Actions</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((t) => (
+                <tr key={t._id}>
+                  <Td>
+                    {t.userId?.username || "N/A"}
+                    {console.log(t)}
+                    <br />
+                    <small>
+                      {t.userInputs.map((input, index) => (
+                        <span key={index}>{input.value}</span>
+                      ))}
+                    </small>
+                    {/*  */}
+                  </Td>
+                  <Td>{t.paymentMethod?.methodName || "—"}</Td>
+                  <Td>{t.channel || "—"}</Td>
+                  <Td>৳{t.amount}</Td>
+                  <Td>
+                    <StatusBadge status={t.status}>{t.status}</StatusBadge>
+                  </Td>
+                  <Td>{t.reason ? t.reason.slice(0, 20) + "..." : "—"}</Td>
+                  <Td>
+                    <ActionButtons>
+                      <Button
+                        bg="#22c55e"
+                        onClick={() =>
+                          navigate(`/Withdraw-transaction/${t._id}`)
+                        }
+                      >
+                        <FaEye />
+                      </Button>
+                      <Button
+                        bg="#f59e0b"
+                        onClick={() => openModal(t)}
+                        disabled={t.status === "completed"}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        bg="#ef4444"
+                        onClick={() => handleDelete(t._id)}
+                        disabled={t.status === "completed"}
+                      >
+                        <FaTrash />
+                      </Button>
+                    </ActionButtons>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </TableWrapper>
+      )}
+
+      {/* Mobile Cards */}
+      {!loading &&
+        filtered.map((t) => (
+          <MobileCard key={t._id}>
+            <MobileCardHeader>
+              <div>
+                <div>{t.userId?.name || "Unknown"}</div>
+                <small>{t.userId?.phoneNumber}</small>
+              </div>
+              <StatusBadge status={t.status}>{t.status}</StatusBadge>
+            </MobileCardHeader>
+            <div>
+              <strong>Method:</strong> {t.paymentMethod?.methodName || "—"}
+            </div>
+            <div>
+              <strong>Amount:</strong> ৳{t.amount}
+            </div>
+            <ActionButtons style={{ marginTop: "1rem" }}>
+              <Button
+                bg="#22c55e"
+                onClick={() => navigate(`/Withdraw-transaction/${t._id}`)}
+              >
+                <FaEye />
+              </Button>
+              <Button
+                bg="#f59e0b"
+                onClick={() => openModal(t)}
+                disabled={t.status === "completed"}
+              >
+                <FaEdit />
+              </Button>
+              <Button
+                bg="#ef4444"
+                onClick={() => handleDelete(t._id)}
+                disabled={t.status === "completed"}
+              >
+                <FaTrash />
+              </Button>
+            </ActionButtons>
+          </MobileCard>
+        ))}
+
+      {/* Edit Modal */}
       {showModal && (
-        <Modal>
-          <ModalContent>
-            <ModalTitle>Edit Withdraw Transaction</ModalTitle>
+        <Modal onClick={() => setShowModal(false)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ margin: "1.5rem", marginBottom: "1.5rem" }}>
+              Edit Transaction
+            </h3>
             {error && <Message error>{error}</Message>}
             {success && <Message>{success}</Message>}
-            <Form onSubmit={handleSubmit}>
-              <Label>Amount</Label>
-              <Input
-                type="number"
-                name="amount"
-                value={formData.amount}
-                onChange={handleInputChange}
-                required
-                min="200"
-                max="30000"
-                disabled={loading || formData.status === 'completed'}
-              />
-              <Label>Status</Label>
-              <Select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-              >
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-                <option value="failed">Failed</option>
-                <option value="cancelled">Cancelled</option>
-              </Select>
-              <Label>Reason {['failed', 'cancelled'].includes(formData.status) && '*'}</Label>
-              <Textarea
-                name="reason"
-                value={formData.reason}
-                onChange={handleInputChange}
-                placeholder="Enter reason for failed or cancelled status"
-                disabled={loading}
-                required={['failed', 'cancelled'].includes(formData.status)}
-              />
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+            <form onSubmit={handleUpdate}>
+              <div style={{ marginBottom: "1rem" }}>
+                <label>Amount</label>
+                <Input
+                  type="number"
+                  value={formData.amount}
+                  onChange={(e) =>
+                    setFormData({ ...formData, amount: e.target.value })
+                  }
+                  min="200"
+                  max="30000"
+                  required
+                />
+              </div>
+              <div style={{ marginBottom: "1rem" }}>
+                <label>Status</label>
+                <Select
+                  value={formData.status}
+                  onChange={(e) =>
+                    setFormData({ ...formData, status: e.target.value })
+                  }
+                >
+                  <option value="pending">Pending</option>
+                  <option value="completed">Completed</option>
+                  <option value="failed">Failed</option>
+                  <option value="cancelled">Cancelled</option>
+                </Select>
+              </div>
+              <div style={{ marginBottom: "1rem" }}>
+                <label>
+                  Reason{" "}
+                  {["failed", "cancelled"].includes(formData.status) &&
+                    "(Required)"}
+                </label>
+                <textarea
+                  rows="4"
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    borderRadius: "0.375rem",
+                    border: "1px solid #e2e8f0",
+                  }}
+                  value={formData.reason}
+                  onChange={(e) =>
+                    setFormData({ ...formData, reason: e.target.value })
+                  }
+                  required={["failed", "cancelled"].includes(formData.status)}
+                />
+              </div>
+              <div style={{ display: "flex", gap: "1rem" }}>
                 <Button type="submit" disabled={loading}>
                   Update
                 </Button>
                 <Button
-                  bgColor="#6b7280"
-                  hoverBgColor="#4b5563"
                   type="button"
+                  bg="#6b7280"
                   onClick={() => setShowModal(false)}
-                  disabled={loading}
                 >
                   Cancel
                 </Button>
               </div>
-            </Form>
+            </form>
           </ModalContent>
         </Modal>
       )}

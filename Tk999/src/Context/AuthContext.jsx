@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
       );
       if (!res.ok) throw new Error("Failed to fetch user");
       const data = await res.json();
+      setUserId(data.user._id);
       return data.user;
     } catch (err) {
       console.error("Fetch user error:", err);
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
   // শুধু balance রিফ্রেশ
   const refreshBalance = async () => {
     const userId = localStorage.getItem("userId");
-    console.log(userId)
+    console.log(userId);
     if (!userId) return;
 
     setIsBalanceLoading(true); // লোডিং শুরু
@@ -53,7 +54,7 @@ export const AuthProvider = ({ children }) => {
       fetchUser(userId).then((fetchedUser) => {
         if (fetchedUser) {
           setUser(fetchedUser);
-          setUserId(fetchUser._id);
+
           setBalance(fetchedUser.balance || 0);
           localStorage.setItem("user", JSON.stringify(fetchedUser));
         } else {
@@ -97,6 +98,8 @@ export const AuthProvider = ({ children }) => {
         isBalanceLoading, // নতুন
         language,
         setLanguage,
+        userId,
+        setBalance,
       }}
     >
       {children}

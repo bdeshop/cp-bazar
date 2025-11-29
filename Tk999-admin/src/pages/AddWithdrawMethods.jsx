@@ -1,18 +1,11 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
-import { toast } from 'react-toastify';
-import {
-  getWithdrawPaymentMethods,
-  createWithdrawPaymentMethod,
-  updateWithdrawPaymentMethod,
-  deleteWithdrawPaymentMethod,
-  getWithdrawPaymentMethodById,
-} from '../redux/Withdraw Control/withdrawPaymentGetawaySliceAndApi.js';
-import JoditEditor from 'jodit-react';
-import { baseURL_For_IMG_UPLOAD } from '../utils/baseURL.js';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import { toast } from "react-toastify";
+import JoditEditor from "jodit-react";
+import axios from "axios";
+import { API_URL } from "../utils/baseURL";
 
-// Styled Components
+// === Styled Components (অপরিবর্তিত) ===
 const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -23,14 +16,12 @@ const Container = styled.div`
     padding: 1rem;
   }
 `;
-
 const Title = styled.h1`
   font-size: 1.875rem;
   font-weight: 700;
   color: #1e3a8a;
   margin-bottom: 2rem;
 `;
-
 const FormCard = styled.form`
   background: white;
   padding: 2rem;
@@ -38,17 +29,14 @@ const FormCard = styled.form`
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
 `;
-
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
 `;
-
 const InputGroup = styled.div`
   margin-bottom: 1.5rem;
 `;
-
 const Label = styled.label`
   display: block;
   font-size: 0.875rem;
@@ -56,40 +44,28 @@ const Label = styled.label`
   color: #2d3748;
   margin-bottom: 0.5rem;
 `;
-
 const Input = styled.input`
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   font-size: 1rem;
-  transition: all 0.3s ease;
-  direction: ltr;
   &:focus {
     outline: none;
     border-color: #4c51bf;
     box-shadow: 0 0 0 3px rgba(76, 81, 191, 0.1);
   }
-  ${({ error }) => error && `border-color: #e53e3e;`}
-  ${({ type }) => type === 'color' && `height: 50px;`}
+  ${({ error }) => error && `border-color:#e53e3e;`}${({ type }) =>
+    type === "color" && `height:50px;`}
 `;
-
 const FileInput = styled.input`
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 1rem;
   background: white;
   cursor: pointer;
-  transition: all 0.3s ease;
-  direction: ltr;
-  &:hover {
-    border-color: #4c51bf;
-  }
-  ${({ error }) => error && `border-color: #e53e3e;`}
 `;
-
 const ImagePreview = styled.img`
   width: 100%;
   max-height: 120px;
@@ -97,117 +73,70 @@ const ImagePreview = styled.img`
   border-radius: 8px;
   margin-top: 0.5rem;
 `;
-
 const Select = styled.select`
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 1rem;
   background: white;
-  appearance: none;
-  transition: all 0.3s ease;
-  direction: ltr;
-  &:focus {
-    outline: none;
-    border-color: #4c51bf;
-    box-shadow: 0 0 0 3px rgba(76, 81, 191, 0.1);
-  }
 `;
-
 const Button = styled.button`
   padding: 10px 20px;
   border-radius: 8px;
   font-weight: 600;
   font-size: 1rem;
-  transition: all 0.3s ease;
   cursor: pointer;
   ${({ primary }) =>
-    primary
-      ? `
-        background: linear-gradient(45deg, #4c51bf, #7f9cf5);
-        color: white;
-        &:hover {
-          background: linear-gradient(45deg, #434190, #667eea);
-        }
-      `
-      : `
-        background: #edf2f7;
-        color: #2d3748;
-        &:hover {
-          background: #e2e8f0;
-        }
-      `}
-  ${({ danger }) =>
+    primary &&
+    `background:linear-gradient(45deg,#4c51bf,#7f9cf5);color:white;`}${({
+    danger,
+  }) =>
     danger &&
-    `
-      background: linear-gradient(45deg, #e53e3e, #f56565);
-      color: white;
-      &:hover {
-        background: linear-gradient(45deg, #c53030, #e53e3e);
-      }
-    `}
-  ${({ small }) =>
-    small &&
-    `
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
-    `}
-  &:disabled {
+    `background:linear-gradient(45deg,#e53e3e,#f56565);color:white;`}${({
+    small,
+  }) => small && `padding:0.5rem 1rem;font-size:0.875rem;`}&:disabled {
     background: #e2e8f0;
-    cursor W: 0.7;
+    cursor: not-allowed;
+    opacity: 0.7;
   }
 `;
-
 const ErrorText = styled.p`
   color: #e53e3e;
   font-size: 0.875rem;
   margin-top: 0.25rem;
 `;
-
 const GatewayContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.5rem;
 `;
-
 const GatewayTag = styled.div`
   display: flex;
   align-items: center;
   background: #e6fffa;
-  color: #2d3748;
   padding: 0.5rem 1rem;
   border-radius: 20px;
   font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
 `;
-
 const RemoveGatewayButton = styled.button`
   margin-left: 0.5rem;
   background: none;
   border: none;
   color: #e53e3e;
-  font-size: 1rem;
   cursor: pointer;
-  &:hover {
-    color: #c53030;
-  }
 `;
-
 const GatewayInputWrapper = styled.div`
   display: flex;
   gap: 0.5rem;
   align-items: center;
 `;
-
 const ButtonWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
+  margin-top: 1rem;
 `;
-
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -219,13 +148,7 @@ const ModalOverlay = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease;
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
 `;
-
 const ModalContent = styled.div`
   background: white;
   padding: 2rem;
@@ -235,48 +158,31 @@ const ModalContent = styled.div`
   max-height: 80vh;
   overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  animation: slideIn 0.3s ease;
-  @media (max-width: 640px) {
-    margin: 1rem;
-  }
-  @keyframes slideIn {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
 `;
-
 const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
 `;
-
 const ModalTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 600;
   color: #1e3a8a;
 `;
-
 const CloseButton = styled.button`
   background: none;
   border: none;
   font-size: 1.5rem;
   color: #2d3748;
   cursor: pointer;
-  &:hover {
-    color: #e53e3e;
-  }
 `;
-
 const UserInputCard = styled.div`
   background: #f7fafc;
   padding: 1.5rem;
   border-radius: 8px;
-  margin-bottom: 1rem;
   border: 1px solid #e2e8f0;
 `;
-
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
@@ -285,54 +191,46 @@ const Table = styled.table`
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 `;
-
 const TableHead = styled.thead`
   background: linear-gradient(45deg, #4c51bf, #7f9cf5);
   color: white;
 `;
-
 const TableRow = styled.tr`
   border-bottom: 1px solid #e2e8f0;
   &:hover {
     background: rgba(167, 169, 202, 0.26);
   }
 `;
-
 const TableHeader = styled.th`
   padding: 1rem;
   font-size: 0.875rem;
   font-weight: 600;
   text-align: left;
 `;
-
 const TableCell = styled.td`
   padding: 1rem;
   font-size: 0.875rem;
   color: #2d3748;
 `;
-
 const ActionButtons = styled.div`
   display: flex;
   gap: 0.5rem;
 `;
-
 const MethodsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
 `;
-
 const MethodCard = styled.div`
   background: white;
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s;
   &:hover {
     transform: translateY(-5px);
   }
 `;
-
 const MethodImage = styled.img`
   width: 100%;
   height: 120px;
@@ -342,524 +240,394 @@ const MethodImage = styled.img`
 `;
 
 const AddWithdrawMethods = () => {
-  const dispatch = useDispatch();
-  const { withdrawPaymentMethods = [], isLoading, error } = useSelector((state) => state.withdrawPaymentGateway || {});
-
-  const [formData, setFormData] = useState({
-    methodName: '',
-    methodNameBD: '',
-    methodImage: '',
-    gateway: [],
-    color: '#000000',
-    backgroundColor: '#ffffff',
-    buttonColor: '#000000',
-    instruction: '',
-    instructionBD: '',
-    status: 'active',
-    userInputs: [],
-  });
-
-  const [newUserInput, setNewUserInput] = useState({
-    type: 'text',
-    isRequired: 'false',
-    label: '',
-    labelBD: '',
-    fieldInstruction: '',
-    fieldInstructionBD: '',
-    name: '',
-  });
-  const [editingUserInput, setEditingUserInput] = useState(null);
-  const [editingIndex, setEditingIndex] = useState(null);
-  const [gatewayInput, setGatewayInput] = useState('');
-  const [gatewayError, setGatewayError] = useState('');
-  const [errors, setErrors] = useState({});
+  const [methods, setMethods] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [gatewayInput, setGatewayInput] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
-  const instructionEditorRef = useRef(null);
-  const instructionBDEditorRef = useRef(null);
+  const [newUserInput, setNewUserInput] = useState({
+    type: "text",
+    isRequired: "false",
+    label: "",
+    labelBD: "",
+    fieldInstruction: "",
+    fieldInstructionBD: "",
+    name: "",
+  });
+  const [editingUserInput, setEditingUserInput] = useState(null);
+  const [editingIndex, setEditingIndex] = useState(null);
+
+  const [formData, setFormData] = useState({
+    methodName: "",
+    methodNameBD: "",
+    methodImage: null,
+    gateway: [],
+    color: "#000000",
+    backgroundColor: "#ffffff",
+    buttonColor: "#000000",
+    instruction: "",
+    instructionBD: "",
+    status: "active",
+    userInputs: [],
+  });
+
 
   useEffect(() => {
-    dispatch(getWithdrawPaymentMethods());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
-
-  const handleImageUpload = useCallback(async (file) => {
-    const uploadData = new FormData();
-    uploadData.append('image', file);
-
-    try {
-      const res = await fetch(baseURL_For_IMG_UPLOAD, {
-        method: 'POST',
-        body: uploadData,
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.imageUrl) {
-        throw new Error('Image upload failed');
-      }
-      return data.imageUrl;
-    } catch (error) {
-      console.error('Upload Error:', error);
-      throw error;
-    }
+    fetchMethods();
   }, []);
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.methodName.trim()) newErrors.methodName = 'Method Name is required';
-    if (!formData.methodNameBD.trim()) newErrors.methodNameBD = 'Method Name (Bangla) is required';
-    if (!formData.methodImage.trim()) newErrors.methodImage = 'Method Image is required';
-    if (!formData.color) newErrors.color = 'Text Color is required';
-    if (!formData.backgroundColor) newErrors.backgroundColor = 'Background Color is required';
-    if (!formData.buttonColor) newErrors.buttonColor = 'Button Color is required';
-    if (formData.userInputs.length === 0) {
-      newErrors.userInputs = 'At least one user input field is required';
-    } else {
-      const hasRequiredField = formData.userInputs.some((input) => input.isRequired === 'true');
-      if (!hasRequiredField) {
-        newErrors.userInputs = 'At least one user input field must be marked as required';
-      }
-      formData.userInputs.forEach((input, index) => {
-        if (!input.name.trim()) {
-          newErrors[`userInputs[${index}].name`] = 'Name is required';
-        }
-      });
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: '' }));
-  };
-
-  const handleEditorChange = (newContent, field) => {
-    setFormData((prev) => ({ ...prev, [field]: newContent }));
-    setErrors((prev) => ({ ...prev, [field]: '' }));
-  };
-
-  const handleFileChange = async (e, field) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
+  const fetchMethods = async () => {
+    setLoading(true);
     try {
-      const imageUrl = await handleImageUpload(file);
-      setFormData((prev) => ({ ...prev, [field]: imageUrl }));
-      setErrors((prev) => ({ ...prev, [field]: '' }));
-      toast.success('Method image uploaded successfully');
-    } catch (error) {
-      toast.error('Failed to upload method image');
+      const res = await axios.get(
+        `${API_URL}/api/withdraw-payment-methods/methods`
+      );
+      setMethods(res.data.data);
+    } catch {
+      toast.error("Failed to load methods");
     }
+    setLoading(false);
   };
 
-  const handleGatewayInputChange = (e) => {
-    setGatewayInput(e.target.value);
-    setGatewayError('');
+  const validate = () => {
+    const err = {};
+    if (!formData.methodName.trim()) err.methodName = "Required";
+    if (!formData.methodNameBD.trim()) err.methodNameBD = "Required";
+    if (!formData.methodImage && !editingId) err.methodImage = "Image required";
+    if (formData.gateway.length === 0) err.gateway = "Add at least one gateway";
+    if (formData.userInputs.length === 0)
+      err.userInputs = "Add at least one field";
+    setErrors(err);
+    return Object.keys(err).length === 0;
   };
 
-  const addGateway = () => {
-    const trimmedGateway = gatewayInput.trim();
-    if (!trimmedGateway) {
-      setGatewayError('Gateway name cannot be empty');
-      return;
-    }
-    if (formData.gateway.includes(trimmedGateway)) {
-      setGatewayError('Gateway already added');
-      return;
-    }
-    setFormData((prev) => ({
-      ...prev,
-      gateway: [...prev.gateway, trimmedGateway],
-    }));
-    setGatewayInput('');
-    setGatewayError('');
-  };
-
-  const removeGateway = (gatewayToRemove) => {
-    setFormData((prev) => ({
-      ...prev,
-      gateway: prev.gateway.filter((gateway) => gateway !== gatewayToRemove),
-    }));
-  };
-
-  const handleNewUserInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewUserInput((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, 'newUserInput.name': '' }));
-  };
-
-  const handleEditingUserInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditingUserInput((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, 'editingUserInput.name': '' }));
-  };
-
-  const addUserInput = () => {
-    if (!newUserInput.name.trim()) {
-      setErrors((prev) => ({
-        ...prev,
-        'newUserInput.name': 'Name is required',
-      }));
-      toast.error('Please fill in the name for the new user input');
-      return;
-    }
-    setFormData((prev) => ({
-      ...prev,
-      userInputs: [...prev.userInputs, { ...newUserInput }],
-    }));
-    setNewUserInput({
-      type: 'text',
-      isRequired: 'false',
-      label: '',
-      labelBD: '',
-      fieldInstruction: '',
-      fieldInstructionBD: '',
-      name: '',
-    });
-    setIsAddModalOpen(false);
-    toast.success('User input added successfully');
-  };
-
-  const updateUserInput = () => {
-    if (!editingUserInput.name.trim()) {
-      setErrors((prev) => ({
-        ...prev,
-        'editingUserInput.name': 'Name is required',
-      }));
-      toast.error('Please fill in the name for the user input');
-      return;
-    }
-    const updatedUserInputs = [...formData.userInputs];
-    updatedUserInputs[editingIndex] = { ...editingUserInput };
-    setFormData((prev) => ({
-      ...prev,
-      userInputs: updatedUserInputs,
-    }));
-    setEditingUserInput(null);
-    setEditingIndex(null);
-    setIsUpdateModalOpen(false);
-    toast.success('User input updated successfully');
-  };
-
-  const deleteUserInput = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      userInputs: prev.userInputs.filter((_, i) => i !== index),
-    }));
-    setErrors((prev) => {
-      const newErrors = { ...prev };
-      Object.keys(newErrors).forEach((key) => {
-        if (key.startsWith(`userInputs[${index}]`)) delete newErrors[key];
-      });
-      return newErrors;
-    });
-    toast.success('User input deleted successfully');
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) setFormData((prev) => ({ ...prev, methodImage: file }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) {
-      toast.error('Please fix the form errors');
-      return;
+    if (!validate()) return;
+
+    const payload = new FormData();
+    payload.append("methodName", formData.methodName);
+    payload.append("methodNameBD", formData.methodNameBD);
+    payload.append("gateway", JSON.stringify(formData.gateway));
+    payload.append("color", formData.color);
+    payload.append("backgroundColor", formData.backgroundColor);
+    payload.append("buttonColor", formData.buttonColor);
+    payload.append("instruction", formData.instruction || "");
+    payload.append("instructionBD", formData.instructionBD || "");
+    payload.append("status", formData.status);
+    payload.append("userInputs", JSON.stringify(formData.userInputs));
+
+    // ইমেজ (create এ বাধ্যতামূলক, update এ অপশনাল)
+    if (formData.methodImage) {
+      payload.append("methodImage", formData.methodImage);
     }
+
     try {
+      setLoading(true);
       if (editingId) {
-        await dispatch(updateWithdrawPaymentMethod({ id: editingId, data: formData })).unwrap();
-        toast.success('Payment method updated successfully');
+        await axios.put(
+          `${API_URL}/api/withdraw-payment-methods/method/${editingId}`,
+          payload
+        );
+        toast.success("Updated successfully!");
       } else {
-        await dispatch(createWithdrawPaymentMethod(formData)).unwrap();
-        toast.success('Payment method created successfully');
+        await axios.post(`${API_URL}/api/withdraw-payment-methods/method`, payload);
+        toast.success("Created successfully!");
       }
       resetForm();
+      fetchMethods();
     } catch (err) {
-      toast.error('Failed to save payment method');
+      toast.error(err.response?.data?.msg || "Operation failed");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEdit = async (id) => {
-    try {
-      const paymentMethod = await dispatch(getWithdrawPaymentMethodById(id)).unwrap();
-      setFormData({
-        ...paymentMethod,
-        instruction: paymentMethod.instruction || '',
-        instructionBD: paymentMethod.instructionBD || '',
-      });
-      setEditingId(id);
-      setErrors({});
-    } catch (err) {
-      toast.error('Failed to fetch payment method');
-    }
+  const handleEdit = (method) => {
+    setFormData({
+      ...method,
+      methodImage: null, // নতুন ইমেজ চাইলে আবার আপলোড করবে
+    });
+    setEditingId(method._id);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this payment method?')) {
-      try {
-        await dispatch(deleteWithdrawPaymentMethod(id)).unwrap();
-        toast.success('Payment method deleted successfully');
-      } catch (err) {
-        toast.error('Failed to delete payment method');
-      }
+    if (!window.confirm("Delete this method?")) return;
+    try {
+      await axios.delete(`${API_URL}/api/withdraw-payment-methods/method/${id}`);
+      toast.success("Deleted");
+      fetchMethods();
+    } catch {
+      toast.error("Delete failed");
     }
   };
 
   const resetForm = () => {
     setFormData({
-      methodName: '',
-      methodNameBD: '',
-      methodImage: '',
+      methodName: "",
+      methodNameBD: "",
+      methodImage: null,
       gateway: [],
-      color: '#000000',
-      backgroundColor: '#ffffff',
-      buttonColor: '#000000',
-      instruction: '',
-      instructionBD: '',
-      status: 'active',
+      color: "#000000",
+      backgroundColor: "#ffffff",
+      buttonColor: "#000000",
+      instruction: "",
+      instructionBD: "",
+      status: "active",
       userInputs: [],
     });
-    setNewUserInput({
-      type: 'text',
-      isRequired: 'false',
-      label: '',
-      labelBD: '',
-      fieldInstruction: '',
-      fieldInstructionBD: '',
-      name: '',
-    });
-    setEditingUserInput(null);
-    setEditingIndex(null);
-    setGatewayInput('');
-    setGatewayError('');
     setEditingId(null);
     setErrors({});
-    setIsAddModalOpen(false);
-    setIsUpdateModalOpen(false);
   };
 
-  const openAddModal = () => {
+  // Gateway & User Input functions
+  const addGateway = () => {
+    const t = gatewayInput.trim();
+    if (!t || formData.gateway.includes(t)) return;
+    setFormData((p) => ({ ...p, gateway: [...p.gateway, t] }));
+    setGatewayInput("");
+  };
+  const removeGateway = (g) =>
+    setFormData((p) => ({ ...p, gateway: p.gateway.filter((x) => x !== g) }));
+
+  const addUserInput = () => {
+    if (!newUserInput.name.trim()) return toast.error("Name required");
+    setFormData((p) => ({
+      ...p,
+      userInputs: [...p.userInputs, { ...newUserInput }],
+    }));
     setNewUserInput({
-      type: 'text',
-      isRequired: 'false',
-      label: '',
-      labelBD: '',
-      fieldInstruction: '',
-      fieldInstructionBD: '',
-      name: '',
+      type: "text",
+      isRequired: "false",
+      label: "",
+      labelBD: "",
+      fieldInstruction: "",
+      fieldInstructionBD: "",
+      name: "",
     });
-    setErrors({});
-    setIsAddModalOpen(true);
+    setIsAddModalOpen(false);
   };
 
-  const openUpdateModal = (input, index) => {
-    setEditingUserInput({ ...input });
-    setEditingIndex(index);
-    setErrors({});
-    setIsUpdateModalOpen(true);
-  };
-
-  const closeAddModal = () => setIsAddModalOpen(false);
-  const closeUpdateModal = () => {
-    setEditingUserInput(null);
-    setEditingIndex(null);
+  const updateUserInput = () => {
+    if (!editingUserInput.name.trim()) return toast.error("Name required");
+    const updated = [...formData.userInputs];
+    updated[editingIndex] = editingUserInput;
+    setFormData((p) => ({ ...p, userInputs: updated }));
     setIsUpdateModalOpen(false);
   };
+
+  const deleteUserInput = (i) =>
+    setFormData((p) => ({
+      ...p,
+      userInputs: p.userInputs.filter((_, idx) => idx !== i),
+    }));
 
   return (
     <Container>
       <Title>Manage Withdraw Payment Methods</Title>
 
-      {/* Form */}
       <FormCard onSubmit={handleSubmit}>
         <Grid>
           <InputGroup>
-            <Label>Method Name (English)</Label>
+            <Label>Method Name (EN)</Label>
             <Input
               type="text"
-              name="methodName"
               value={formData.methodName}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, methodName: e.target.value }))
+              }
               error={errors.methodName}
             />
             {errors.methodName && <ErrorText>{errors.methodName}</ErrorText>}
           </InputGroup>
           <InputGroup>
-            <Label>Method Name (Bangla)</Label>
+            <Label>Method Name (BD)</Label>
             <Input
               type="text"
-              name="methodNameBD"
               value={formData.methodNameBD}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, methodNameBD: e.target.value }))
+              }
               error={errors.methodNameBD}
             />
-            {errors.methodNameBD && <ErrorText>{errors.methodNameBD}</ErrorText>}
+            {errors.methodNameBD && (
+              <ErrorText>{errors.methodNameBD}</ErrorText>
+            )}
           </InputGroup>
+
           <InputGroup>
-            <Label>Method Image</Label>
+            <Label>Method Image {editingId && "(Optional on update)"}</Label>
             <FileInput
               type="file"
               accept="image/*"
-              onChange={(e) => handleFileChange(e, 'methodImage')}
-              error={errors.methodImage}
+              onChange={handleImageChange}
             />
-            {formData.methodImage && <ImagePreview src={`${baseURL_For_IMG_UPLOAD}s/${formData.methodImage}`} alt="Method Preview" />}
+            {formData.methodImage &&
+              typeof formData.methodImage === "string" && (
+                <ImagePreview
+                  src={`${API_URL}${formData.methodImage}`}
+                  alt="preview"
+                />
+              )}
             {errors.methodImage && <ErrorText>{errors.methodImage}</ErrorText>}
           </InputGroup>
+
           <InputGroup>
             <Label>Gateways</Label>
             <GatewayInputWrapper>
               <Input
                 type="text"
                 value={gatewayInput}
-                onChange={handleGatewayInputChange}
-                placeholder="Enter gateway name"
-                error={gatewayError}
+                onChange={(e) => setGatewayInput(e.target.value)}
+                placeholder="Obay"
               />
               <Button type="button" onClick={addGateway} small primary>
                 Add
               </Button>
             </GatewayInputWrapper>
-            {gatewayError && <ErrorText>{gatewayError}</ErrorText>}
-            {formData.gateway.length > 0 && (
-              <GatewayContainer>
-                {formData.gateway.map((gateway, index) => (
-                  <GatewayTag key={index}>
-                    {gateway}
-                    <RemoveGatewayButton onClick={() => removeGateway(gateway)}>×</RemoveGatewayButton>
-                  </GatewayTag>
-                ))}
-              </GatewayContainer>
-            )}
+            {errors.gateway && <ErrorText>{errors.gateway}</ErrorText>}
+            <GatewayContainer>
+              {formData.gateway.map((g, i) => (
+                <GatewayTag key={i}>
+                  {g}
+                  <RemoveGatewayButton onClick={() => removeGateway(g)}>
+                    ×
+                  </RemoveGatewayButton>
+                </GatewayTag>
+              ))}
+            </GatewayContainer>
           </InputGroup>
+
           <InputGroup>
             <Label>Text Color</Label>
             <Input
               type="color"
-              name="color"
               value={formData.color}
-              onChange={handleInputChange}
-              error={errors.color}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, color: e.target.value }))
+              }
             />
-            {errors.color && <ErrorText>{errors.color}</ErrorText>}
           </InputGroup>
           <InputGroup>
             <Label>Background Color</Label>
             <Input
               type="color"
-              name="backgroundColor"
               value={formData.backgroundColor}
-              onChange={handleInputChange}
-              error={errors.backgroundColor}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, backgroundColor: e.target.value }))
+              }
             />
-            {errors.backgroundColor && <ErrorText>{errors.backgroundColor}</ErrorText>}
           </InputGroup>
           <InputGroup>
             <Label>Button Color</Label>
             <Input
               type="color"
-              name="buttonColor"
               value={formData.buttonColor}
-              onChange={handleInputChange}
-              error={errors.buttonColor}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, buttonColor: e.target.value }))
+              }
             />
-            {errors.buttonColor && <ErrorText>{errors.buttonColor}</ErrorText>}
           </InputGroup>
           <InputGroup>
             <Label>Status</Label>
-            <Select name="status" value={formData.status} onChange={handleInputChange}>
+            <Select
+              value={formData.status}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, status: e.target.value }))
+              }
+            >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </Select>
           </InputGroup>
         </Grid>
+
         <InputGroup>
-          <Label>Instruction (English)</Label>
+          <Label>Instruction (EN)</Label>
           <JoditEditor
-            ref={instructionEditorRef}
             value={formData.instruction}
-            onChange={(newContent) => handleEditorChange(newContent, 'instruction')}
+            onChange={(c) => setFormData((p) => ({ ...p, instruction: c }))}
           />
         </InputGroup>
         <InputGroup>
-          <Label>Instruction (Bangla)</Label>
+          <Label>Instruction (BD)</Label>
           <JoditEditor
-            ref={instructionBDEditorRef}
             value={formData.instructionBD}
-            onChange={(newContent) => handleEditorChange(newContent, 'instructionBD')}
+            onChange={(c) => setFormData((p) => ({ ...p, instructionBD: c }))}
           />
         </InputGroup>
+
         <InputGroup>
           <Label>User Input Fields</Label>
           <ButtonWrapper>
-            <Button type="button" onClick={openAddModal} primary>
-              Add New User Input
+            <Button
+              type="button"
+              onClick={() => setIsAddModalOpen(true)}
+              primary
+            >
+              Add New Field
             </Button>
           </ButtonWrapper>
           {errors.userInputs && <ErrorText>{errors.userInputs}</ErrorText>}
         </InputGroup>
+
         {formData.userInputs.length > 0 && (
-          <InputGroup>
-            <Label>Saved User Inputs</Label>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Name</TableHeader>
-                  <TableHeader>Type</TableHeader>
-                  <TableHeader>Label (EN)</TableHeader>
-                  <TableHeader>Label (BD)</TableHeader>
-                  <TableHeader>Is Required</TableHeader>
-                  <TableHeader>Instruction (EN)</TableHeader>
-                  <TableHeader>Instruction (BD)</TableHeader>
-                  <TableHeader>Actions</TableHeader>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Name</TableHeader>
+                <TableHeader>Type</TableHeader>
+                <TableHeader>Required</TableHeader>
+                <TableHeader>Actions</TableHeader>
+              </TableRow>
+            </TableHead>
+            <tbody>
+              {formData.userInputs.map((input, idx) => (
+                <TableRow key={idx}>
+                  <TableCell>{input.name}</TableCell>
+                  <TableCell>{input.type}</TableCell>
+                  <TableCell>
+                    {input.isRequired === "true" ? "Yes" : "No"}
+                  </TableCell>
+                  <TableCell>
+                    <ActionButtons>
+                      <Button
+                        small
+                        primary
+                        onClick={() => {
+                          setEditingUserInput({ ...input });
+                          setEditingIndex(idx);
+                          setIsUpdateModalOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button small danger onClick={() => deleteUserInput(idx)}>
+                        Delete
+                      </Button>
+                    </ActionButtons>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <tbody>
-                {formData.userInputs.map((input, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{input.name || ''}</TableCell>
-                    <TableCell>{input.type}</TableCell>
-                    <TableCell>{input.label || ''}</TableCell>
-                    <TableCell>{input.labelBD || ''}</TableCell>
-                    <TableCell>{input.isRequired}</TableCell>
-                    <TableCell>{input.fieldInstruction || ''}</TableCell>
-                    <TableCell>{input.fieldInstructionBD || ''}</TableCell>
-                    <TableCell>
-                      <ActionButtons>
-                        <Button
-                          type="button"
-                          onClick={() => openUpdateModal(input, index)}
-                          small
-                          primary
-                        >
-                          Update
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={() => deleteUserInput(index)}
-                          small
-                          danger
-                        >
-                          Delete
-                        </Button>
-                      </ActionButtons>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </tbody>
-            </Table>
-          </InputGroup>
+              ))}
+            </tbody>
+          </Table>
         )}
 
         <ButtonWrapper>
-          <Button type="submit" primary disabled={isLoading}>
-            {isLoading ? 'Saving...' : editingId ? 'Update' : 'Create'}
+          <Button type="submit" primary disabled={loading}>
+            {loading
+              ? "Saving..."
+              : editingId
+              ? "Update Method"
+              : "Create Method"}
           </Button>
           {editingId && (
             <Button type="button" onClick={resetForm}>
@@ -869,22 +637,25 @@ const AddWithdrawMethods = () => {
         </ButtonWrapper>
       </FormCard>
 
-      {/* Add User Input Modal */}
+      {/* Add / Edit User Input Modals (আগের মতোই) */}
       {isAddModalOpen && (
-        <ModalOverlay onClick={closeAddModal}>
+        <ModalOverlay onClick={() => setIsAddModalOpen(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
-              <ModalTitle>Add New User Input</ModalTitle>
-              <CloseButton onClick={closeAddModal}>×</CloseButton>
+              <ModalTitle>Add Field</ModalTitle>
+              <CloseButton onClick={() => setIsAddModalOpen(false)}>
+                ×
+              </CloseButton>
             </ModalHeader>
             <UserInputCard>
               <Grid>
                 <InputGroup>
                   <Label>Type</Label>
                   <Select
-                    name="type"
                     value={newUserInput.type}
-                    onChange={handleNewUserInputChange}
+                    onChange={(e) =>
+                      setNewUserInput((p) => ({ ...p, type: e.target.value }))
+                    }
                   >
                     <option value="text">Text</option>
                     <option value="number">Number</option>
@@ -892,95 +663,112 @@ const AddWithdrawMethods = () => {
                   </Select>
                 </InputGroup>
                 <InputGroup>
-                  <Label>Name</Label>
+                  <Label>Name (key)</Label>
                   <Input
                     type="text"
-                    name="name"
                     value={newUserInput.name}
-                    onChange={handleNewUserInputChange}
-                    error={errors['newUserInput.name']}
+                    onChange={(e) =>
+                      setNewUserInput((p) => ({ ...p, name: e.target.value }))
+                    }
                   />
-                  {errors['newUserInput.name'] && (
-                    <ErrorText>{errors['newUserInput.name']}</ErrorText>
-                  )}
                 </InputGroup>
                 <InputGroup>
-                  <Label>Label (English)</Label>
+                  <Label>Label (EN)</Label>
                   <Input
                     type="text"
-                    name="label"
                     value={newUserInput.label}
-                    onChange={handleNewUserInputChange}
+                    onChange={(e) =>
+                      setNewUserInput((p) => ({ ...p, label: e.target.value }))
+                    }
                   />
                 </InputGroup>
                 <InputGroup>
-                  <Label>Label (Bangla)</Label>
+                  <Label>Label (BD)</Label>
                   <Input
                     type="text"
-                    name="labelBD"
                     value={newUserInput.labelBD}
-                    onChange={handleNewUserInputChange}
+                    onChange={(e) =>
+                      setNewUserInput((p) => ({
+                        ...p,
+                        labelBD: e.target.value,
+                      }))
+                    }
                   />
                 </InputGroup>
                 <InputGroup>
-                  <Label>Is Required</Label>
+                  <Label>Required?</Label>
                   <Select
-                    name="isRequired"
                     value={newUserInput.isRequired}
-                    onChange={handleNewUserInputChange}
+                    onChange={(e) =>
+                      setNewUserInput((p) => ({
+                        ...p,
+                        isRequired: e.target.value,
+                      }))
+                    }
                   >
-                    <option value="true">True</option>
-                    <option value="false">False</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
                   </Select>
                 </InputGroup>
                 <InputGroup>
-                  <Label>Field Instruction (English)</Label>
+                  <Label>Instruction (EN)</Label>
                   <Input
                     type="text"
-                    name="fieldInstruction"
                     value={newUserInput.fieldInstruction}
-                    onChange={handleNewUserInputChange}
+                    onChange={(e) =>
+                      setNewUserInput((p) => ({
+                        ...p,
+                        fieldInstruction: e.target.value,
+                      }))
+                    }
                   />
                 </InputGroup>
                 <InputGroup>
-                  <Label>Field Instruction (Bangla)</Label>
+                  <Label>Instruction (BD)</Label>
                   <Input
                     type="text"
-                    name="fieldInstructionBD"
                     value={newUserInput.fieldInstructionBD}
-                    onChange={handleNewUserInputChange}
+                    onChange={(e) =>
+                      setNewUserInput((p) => ({
+                        ...p,
+                        fieldInstructionBD: e.target.value,
+                      }))
+                    }
                   />
                 </InputGroup>
               </Grid>
             </UserInputCard>
-            <div className="flex gap-4">
-              <Button type="button" onClick={addUserInput} primary>
-                Add User Input
+            <ButtonWrapper>
+              <Button primary onClick={addUserInput}>
+                Add
               </Button>
-              <Button type="button" onClick={closeAddModal}>
-                Cancel
-              </Button>
-            </div>
+              <Button onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
+            </ButtonWrapper>
           </ModalContent>
         </ModalOverlay>
       )}
 
-      {/* Update User Input Modal */}
       {isUpdateModalOpen && editingUserInput && (
-        <ModalOverlay onClick={closeUpdateModal}>
+        <ModalOverlay onClick={() => setIsUpdateModalOpen(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
-              <ModalTitle>Update User Input</ModalTitle>
-              <CloseButton onClick={closeUpdateModal}>×</CloseButton>
+              <ModalTitle>Edit Field</ModalTitle>
+              <CloseButton onClick={() => setIsUpdateModalOpen(false)}>
+                ×
+              </CloseButton>
             </ModalHeader>
             <UserInputCard>
               <Grid>
                 <InputGroup>
                   <Label>Type</Label>
                   <Select
-                    name="type"
                     value={editingUserInput.type}
-                    onChange={handleEditingUserInputChange}
+                    onChange={(e) =>
+                      setEditingUserInput((p) => ({
+                        ...p,
+                        type: e.target.value,
+                      }))
+                    }
                   >
                     <option value="text">Text</option>
                     <option value="number">Number</option>
@@ -991,108 +779,138 @@ const AddWithdrawMethods = () => {
                   <Label>Name</Label>
                   <Input
                     type="text"
-                    name="name"
                     value={editingUserInput.name}
-                    onChange={handleEditingUserInputChange}
-                    error={errors['editingUserInput.name']}
+                    onChange={(e) =>
+                      setEditingUserInput((p) => ({
+                        ...p,
+                        name: e.target.value,
+                      }))
+                    }
                   />
-                  {errors['editingUserInput.name'] && (
-                    <ErrorText>{errors['editingUserInput.name']}</ErrorText>
-                  )}
                 </InputGroup>
                 <InputGroup>
-                  <Label>Label (English)</Label>
+                  <Label>Label (EN)</Label>
                   <Input
                     type="text"
-                    name="label"
                     value={editingUserInput.label}
-                    onChange={handleEditingUserInputChange}
+                    onChange={(e) =>
+                      setEditingUserInput((p) => ({
+                        ...p,
+                        label: e.target.value,
+                      }))
+                    }
                   />
                 </InputGroup>
                 <InputGroup>
-                  <Label>Label (Bangla)</Label>
+                  <Label>Label (BD)</Label>
                   <Input
                     type="text"
-                    name="labelBD"
                     value={editingUserInput.labelBD}
-                    onChange={handleEditingUserInputChange}
+                    onChange={(e) =>
+                      setEditingUserInput((p) => ({
+                        ...p,
+                        labelBD: e.target.value,
+                      }))
+                    }
                   />
                 </InputGroup>
                 <InputGroup>
-                  <Label>Is Required</Label>
+                  <Label>Required?</Label>
                   <Select
-                    name="isRequired"
                     value={editingUserInput.isRequired}
-                    onChange={handleEditingUserInputChange}
+                    onChange={(e) =>
+                      setEditingUserInput((p) => ({
+                        ...p,
+                        isRequired: e.target.value,
+                      }))
+                    }
                   >
-                    <option value="true">True</option>
-                    <option value="false">False</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
                   </Select>
                 </InputGroup>
                 <InputGroup>
-                  <Label>Field Instruction (English)</Label>
+                  <Label>Instruction (EN)</Label>
                   <Input
                     type="text"
-                    name="fieldInstruction"
                     value={editingUserInput.fieldInstruction}
-                    onChange={handleEditingUserInputChange}
+                    onChange={(e) =>
+                      setEditingUserInput((p) => ({
+                        ...p,
+                        fieldInstruction: e.target.value,
+                      }))
+                    }
                   />
                 </InputGroup>
                 <InputGroup>
-                  <Label>Field Instruction (Bangla)</Label>
+                  <Label>Instruction (BD)</Label>
                   <Input
                     type="text"
-                    name="fieldInstructionBD"
                     value={editingUserInput.fieldInstructionBD}
-                    onChange={handleEditingUserInputChange}
+                    onChange={(e) =>
+                      setEditingUserInput((p) => ({
+                        ...p,
+                        fieldInstructionBD: e.target.value,
+                      }))
+                    }
                   />
                 </InputGroup>
               </Grid>
             </UserInputCard>
-            <div className="flex gap-4">
-              <Button type="button" onClick={updateUserInput} primary>
-                Save Changes
+            <ButtonWrapper>
+              <Button primary onClick={updateUserInput}>
+                Save
               </Button>
-              <Button type="button" onClick={closeUpdateModal}>
+              <Button onClick={() => setIsUpdateModalOpen(false)}>
                 Cancel
               </Button>
-            </div>
+            </ButtonWrapper>
           </ModalContent>
         </ModalOverlay>
       )}
 
-      {/* THESE ARE THE PAYMENT METHODS LIST */}
+      {/* Existing Methods */}
       <div>
-        <h2 className="text-xl font-medium text-gray-700 mb-4">Payment Methods</h2>
-        {isLoading ? (
-          <p className="text-gray-600">Loading...</p>
-        ) : !withdrawPaymentMethods || withdrawPaymentMethods.length === 0 ? (
-          <p className="text-gray-600">No payment methods found.</p>
+        <h2
+          style={{
+            fontSize: "1.5rem",
+            margin: "2rem 0 1rem",
+            color: "#1e3a8a",
+          }}
+        >
+          Existing Methods
+        </h2>
+        {loading ? (
+          <p>Loading...</p>
         ) : (
           <MethodsGrid>
-            {withdrawPaymentMethods.map((method) => (
-              <MethodCard key={method._id}>
-                <MethodImage src={`${baseURL_For_IMG_UPLOAD}s/${method.methodImage}`} alt={method.methodName} />
-                <h3 className="text-lg font-medium text-gray-900">{method.methodName}</h3>
-                <p className="text-sm text-gray-600">Status: {method.status}</p>
-                <p className="text-sm text-gray-600">Gateways: {method.gateway.join(', ')}</p>
-                <div className="mt-4 flex justify-end gap-2">
-                  <Button
-                    className="text-sm mx-1"
-                    onClick={() => handleEdit(method._id)}
-                    style={{ background: 'transparent', color: '#2563eb' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(37, 99, 235, 0.1)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                  >
+            {methods.map((m) => (
+              <MethodCard key={m._id}>
+                <MethodImage
+                  src={`${API_URL}${m.methodImage}`}
+                  alt={m.methodName}
+                />
+                <h3 style={{ fontSize: "1.25rem", margin: "0.5rem 0" }}>
+                  {m.methodName} ({m.methodNameBD})
+                </h3>
+                <p>
+                  <strong>Status:</strong> {m.status}
+                </p>
+                <p>
+                  <strong>Gateways:</strong> {m.gateway.join(", ")}
+                </p>
+                <div
+                  style={{
+                    marginTop: "1rem",
+                    display: "flex",
+                    gap: "0.5rem",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <Button small primary onClick={() => handleEdit(m)}>
                     Edit
                   </Button>
-                  <Button
-                    className="text-sm mx-1"
-                    onClick={() => handleDelete(method._id)}
-                    style={{ background: 'transparent', color: '#dc2626' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(220, 38, 38, 0.1)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                  >
+                  <Button small danger onClick={() => handleDelete(m._id)}>
                     Delete
                   </Button>
                 </div>
@@ -1104,4 +922,5 @@ const AddWithdrawMethods = () => {
     </Container>
   );
 };
+
 export default AddWithdrawMethods;
