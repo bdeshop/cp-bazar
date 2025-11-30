@@ -1,27 +1,18 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
-import { toast } from 'react-toastify';
-import {
-  getDepositPaymentMethods,
-  createDepositPaymentMethod,
-  updateDepositPaymentMethod,
-  deleteDepositPaymentMethod,
-  getDepositPaymentMethodById,
-} from '../redux/Deposit Control/depositPaymentGetawaySliceAndAPI';
-import JoditEditor from 'jodit-react';
-import { baseURL_For_IMG_UPLOAD } from '../utils/baseURL';
+// src/AdminComponents/DepositPaymentMethods/AddDepositMethods.jsx
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import { toast } from "react-toastify";
+import JoditEditor from "jodit-react";
+import axios from "axios";
+import { API_URL } from "../utils/baseURL";
 
-// Styled Components
+
 const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
   background: #f4f7fa;
   min-height: 100vh;
-  @media (max-width: 640px) {
-    padding: 1rem;
-  }
 `;
 
 const Title = styled.h1`
@@ -36,13 +27,14 @@ const FormCard = styled.form`
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
 `;
 
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
+  margin-bottom: 1.5rem;
 `;
 
 const InputGroup = styled.div`
@@ -63,15 +55,13 @@ const Input = styled.input`
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   font-size: 1rem;
-  transition: all 0.3s ease;
-  direction: ltr;
   &:focus {
     outline: none;
     border-color: #4c51bf;
     box-shadow: 0 0 0 3px rgba(76, 81, 191, 0.1);
   }
   ${({ error }) => error && `border-color: #e53e3e;`}
-  ${({ type }) => type === 'color' && `height: 50px;`}
+  ${({ type }) => type === "color" && `height: 50px; padding: 4px;`}
 `;
 
 const FileInput = styled.input`
@@ -79,23 +69,17 @@ const FileInput = styled.input`
   padding: 0.75rem;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 1rem;
   background: white;
   cursor: pointer;
-  transition: all 0.3s ease;
-  direction: ltr;
-  &:hover {
-    border-color: #4c51bf;
-  }
-  ${({ error }) => error && `border-color: #e53e3e;`}
 `;
 
 const ImagePreview = styled.img`
   width: 100%;
-  max-height: 120px;
+  max-height: 140px;
   object-fit: cover;
   border-radius: 8px;
   margin-top: 0.5rem;
+  border: 2px solid #e2e8f0;
 `;
 
 const Select = styled.select`
@@ -103,60 +87,25 @@ const Select = styled.select`
   padding: 0.75rem;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 1rem;
   background: white;
-  appearance: none;
-  transition: all 0.3s ease;
-  direction: ltr;
-  &:focus {
-    outline: none;
-    border-color: #4c51bf;
-    box-shadow: 0 0 0 3px rgba(76, 81, 191, 0.1);
-  }
 `;
 
 const Button = styled.button`
   padding: 10px 20px;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.3s ease;
   cursor: pointer;
+  transition: all 0.3s;
   ${({ primary }) =>
-    primary
-      ? `
-        background: linear-gradient(45deg, #4c51bf, #7f9cf5);
-        color: white;
-        &:hover {
-          background: linear-gradient(45deg, #434190, #667eea);
-        }
-      `
-      : `
-        background: #edf2f7;
-        color: #2d3748;
-        &:hover {
-          background: #e2e8f0;
-        }
-      `}
+    primary &&
+    `background: linear-gradient(45deg,#4c51bf,#7f9cf5); color: white;`}
   ${({ danger }) =>
     danger &&
-    `
-      background: linear-gradient(45deg, #e53e3e, #f56565);
-      color: white;
-      &:hover {
-        background: linear-gradient(45deg, #c53030, #e53e3e);
-      }
-    `}
-  ${({ small }) =>
-    small &&
-    `
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
-    `}
+    `background: linear-gradient(45deg,#e53e3e,#f56565); color: white;`}
+  ${({ small }) => small && `padding: 6px 12px; font-size: 0.875rem;`}
   &:disabled {
-    background: #e2e8f0;
+    opacity: 0.6;
     cursor: not-allowed;
-    opacity: 0.7;
   }
 `;
 
@@ -177,73 +126,44 @@ const GatewayTag = styled.div`
   display: flex;
   align-items: center;
   background: #e6fffa;
-  color: #2d3748;
   padding: 0.5rem 1rem;
   border-radius: 20px;
   font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
 `;
 
-const RemoveGatewayButton = styled.button`
+const RemoveBtn = styled.button`
   margin-left: 0.5rem;
   background: none;
   border: none;
   color: #e53e3e;
-  font-size: 1rem;
   cursor: pointer;
-  &:hover {
-    color: #c53030;
-  }
-`;
-
-const GatewayInputWrapper = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
 `;
 
 const ButtonWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
+  margin-top: 2rem 0;
 `;
 
 const ModalOverlay = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease;
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
 `;
 
 const ModalContent = styled.div`
   background: white;
   padding: 2rem;
   border-radius: 12px;
-  max-width: 600px;
   width: 100%;
-  max-height: 80vh;
+  max-width: 700px;
+  max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  animation: slideIn 0.3s ease;
-  @media (max-width: 640px) {
-    margin: 1rem;
-  }
-  @keyframes slideIn {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
 `;
 
 const ModalHeader = styled.div`
@@ -262,20 +182,8 @@ const ModalTitle = styled.h2`
 const CloseButton = styled.button`
   background: none;
   border: none;
-  font-size: 1.5rem;
-  color: #2d3748;
+  font-size: 1.8rem;
   cursor: pointer;
-  &:hover {
-    color: #e53e3e;
-  }
-`;
-
-const UserInputCard = styled.div`
-  background: #f7fafc;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  border: 1px solid #e2e8f0;
 `;
 
 const Table = styled.table`
@@ -285,6 +193,7 @@ const Table = styled.table`
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
 `;
 
 const TableHead = styled.thead`
@@ -294,32 +203,23 @@ const TableHead = styled.thead`
 
 const TableRow = styled.tr`
   border-bottom: 1px solid #e2e8f0;
-  &:hover {
-    background: rgba(167, 169, 202, 0.26);
-  }
 `;
 
 const TableHeader = styled.th`
   padding: 1rem;
+  text-align: left;
   font-size: 0.875rem;
   font-weight: 600;
-  text-align: left;
 `;
 
 const TableCell = styled.td`
   padding: 1rem;
   font-size: 0.875rem;
-  color: #2d3748;
-`;
-
-const ActionButtons = styled.div`
-  display: flex;
-  gap: 0.5rem;
 `;
 
 const MethodsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
 `;
 
@@ -328,573 +228,501 @@ const MethodCard = styled.div`
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-  &:hover {
-    transform: translateY(-5px);
-  }
 `;
 
 const MethodImage = styled.img`
   width: 100%;
-  height: 120px;
+  height: 140px;
   object-fit: cover;
   border-radius: 8px;
   margin-bottom: 1rem;
 `;
 
 const AddDepositMethods = () => {
-  const dispatch = useDispatch();
-  const { depositPaymentMethods, isLoading, error } = useSelector((state) => state.depositPaymentGateway);
+  const [methods, setMethods] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [gatewayInput, setGatewayInput] = useState("");
+  const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
-    methodName: '',
-    methodNameBD: '',
-    agentWalletNumber: '', // New field
-    agentWalletText: '', // New field
-    methodImage: '',
+    methodName: "",
+    methodNameBD: "",
+    agentWalletNumber: "",
+    agentWalletText: "",
+    methodImage: null,
+    paymentPageImage: null,
     gateway: [],
-    color: '#000000',
-    backgroundColor: '#ffffff',
-    buttonColor: '#000000',
-    paymentPageImage: '',
-    instruction: '',
-    instructionBD: '',
-    status: 'active',
+    color: "#000000",
+    backgroundColor: "#ffffff",
+    buttonColor: "#000000",
+    instruction: "",
+    instructionBD: "",
+    status: "active",
     userInputs: [],
   });
 
-  const [newUserInput, setNewUserInput] = useState({
-    type: 'text',
-    isRequired: 'false',
-    label: '',
-    labelBD: '',
-    fieldInstruction: '',
-    fieldInstructionBD: '',
-    name: '',
-  });
-  const [editingUserInput, setEditingUserInput] = useState(null);
-  const [editingIndex, setEditingIndex] = useState(null);
-  const [gatewayInput, setGatewayInput] = useState('');
-  const [gatewayError, setGatewayError] = useState('');
-  const [errors, setErrors] = useState({});
-  const [editingId, setEditingId] = useState(null);
+  // Modal States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [newUserInput, setNewUserInput] = useState({
+    type: "text",
+    isRequired: "false",
+    label: "",
+    labelBD: "",
+    fieldInstruction: "",
+    fieldInstructionBD: "",
+    name: "",
+  });
+  const [editingUserInput, setEditingUserInput] = useState(null);
+  const [editingUserIndex, setEditingUserIndex] = useState(null);
 
-  const instructionEditorRef = useRef(null);
-  const instructionBDEditorRef = useRef(null);
-
-  useEffect(() => {
-    dispatch(getDepositPaymentMethods());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
-
-  const handleImageUpload = useCallback(async (file) => {
-    const uploadData = new FormData();
-    uploadData.append('image', file);
-
+  // Fetch all methods
+  const fetchMethods = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(baseURL_For_IMG_UPLOAD, {
-        method: 'POST',
-        body: uploadData,
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.imageUrl) {
-        throw new Error('Image upload failed');
-      }
-      return data.imageUrl;
-    } catch (error) {
-      console.error('Upload Error:', error);
-      throw error;
+      const res = await axios.get(
+        `${API_URL}/api/deposit-payment-method/methods`
+      );
+      setMethods(res.data.data || []);
+    } catch (err) {
+      toast.error("Failed to load methods");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchMethods();
   }, []);
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.methodName.trim()) newErrors.methodName = 'Method Name is required';
-    if (!formData.methodNameBD.trim()) newErrors.methodNameBD = 'Method Name (Bangla) is required';
-    if (!formData.agentWalletNumber.trim()) newErrors.agentWalletNumber = 'Agent Wallet Number is required'; // New validation
-    if (!formData.agentWalletText.trim()) newErrors.agentWalletText = 'Agent Wallet Text is required'; // New validation
-    if (!formData.methodImage.trim()) newErrors.methodImage = 'Method Image is required';
-    if (!formData.color) newErrors.color = 'Text Color is required';
-    if (!formData.backgroundColor) newErrors.backgroundColor = 'Background Color is required';
-    if (!formData.buttonColor) newErrors.buttonColor = 'Button Color is required';
-    formData.userInputs.forEach((input, index) => {
-      if (!input.name.trim()) {
-        newErrors[`userInputs[${index}].name`] = 'Name is required';
-      }
-    });
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: '' }));
-  };
-
-  const handleEditorChange = (newContent, field) => {
-    setFormData((prev) => ({ ...prev, [field]: newContent }));
-    setErrors((prev) => ({ ...prev, [field]: '' }));
-  };
-
-  const handleFileChange = async (e, field) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    try {
-      const imageUrl = await handleImageUpload(file);
-      setFormData((prev) => ({ ...prev, [field]: imageUrl }));
-      setErrors((prev) => ({ ...prev, [field]: '' }));
-      toast.success(`${field === 'methodImage' ? 'Method' : 'Payment Page'} image uploaded successfully`);
-    } catch (error) {
-      toast.error(`Failed to upload ${field === 'methodImage' ? 'method' : 'payment page'} image`);
-    }
-  };
-
-  const handleGatewayInputChange = (e) => {
-    setGatewayInput(e.target.value);
-    setGatewayError('');
-  };
-
-  const addGateway = () => {
-    const trimmedGateway = gatewayInput.trim();
-    if (!trimmedGateway) {
-      setGatewayError('Gateway name cannot be empty');
-      return;
-    }
-    if (formData.gateway.includes(trimmedGateway)) {
-      setGatewayError('Gateway already added');
-      return;
-    }
-    setFormData((prev) => ({
-      ...prev,
-      gateway: [...prev.gateway, trimmedGateway],
-    }));
-    setGatewayInput('');
-    setGatewayError('');
-  };
-
-  const removeGateway = (gatewayToRemove) => {
-    setFormData((prev) => ({
-      ...prev,
-      gateway: prev.gateway.filter((gateway) => gateway !== gatewayToRemove),
-    }));
-  };
-
-  const handleNewUserInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewUserInput((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, 'newUserInput.name': '' }));
-  };
-
-  const handleEditingUserInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditingUserInput((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, 'editingUserInput.name': '' }));
-  };
-
-  const addUserInput = () => {
-    if (!newUserInput.name.trim()) {
-      setErrors((prev) => ({
-        ...prev,
-        'newUserInput.name': 'Name is required',
-      }));
-      toast.error('Please fill in the name for the new user input');
-      return;
-    }
-    setFormData((prev) => ({
-      ...prev,
-      userInputs: [...prev.userInputs, { ...newUserInput }],
-    }));
-    setNewUserInput({
-      type: 'text',
-      isRequired: 'false',
-      label: '',
-      labelBD: '',
-      fieldInstruction: '',
-      fieldInstructionBD: '',
-      name: '',
-    });
-    setIsAddModalOpen(false);
-    toast.success('User input added successfully');
-  };
-
-  const updateUserInput = () => {
-    if (!editingUserInput.name.trim()) {
-      setErrors((prev) => ({
-        ...prev,
-        'editingUserInput.name': 'Name is required',
-      }));
-      toast.error('Please fill in the name for the user input');
-      return;
-    }
-    const updatedUserInputs = [...formData.userInputs];
-    updatedUserInputs[editingIndex] = { ...editingUserInput };
-    setFormData((prev) => ({
-      ...prev,
-      userInputs: updatedUserInputs,
-    }));
-    setEditingUserInput(null);
-    setEditingIndex(null);
-    setIsUpdateModalOpen(false);
-    toast.success('User input updated successfully');
-  };
-
-  const deleteUserInput = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      userInputs: prev.userInputs.filter((_, i) => i !== index),
-    }));
-    setErrors((prev) => {
-      const newErrors = { ...prev };
-      Object.keys(newErrors).forEach((key) => {
-        if (key.startsWith(`userInputs[${index}]`)) delete newErrors[key];
-      });
-      return newErrors;
-    });
-    toast.success('User input deleted successfully');
+  const validate = () => {
+    const err = {};
+    if (!formData.methodName.trim()) err.methodName = "Required";
+    if (!formData.methodNameBD.trim()) err.methodNameBD = "Required";
+    if (!formData.agentWalletNumber.trim()) err.agentWalletNumber = "Required";
+    if (!formData.agentWalletText.trim()) err.agentWalletText = "Required";
+    if (!editingId && !formData.methodImage) err.methodImage = "Image required";
+    setErrors(err);
+    return Object.keys(err).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) {
-      toast.error('Please fix the form errors');
-      return;
-    }
+    if (!validate()) return toast.error("Please fix errors");
+
+    const data = new FormData();
+    data.append("methodName", formData.methodName);
+    data.append("methodNameBD", formData.methodNameBD);
+    data.append("agentWalletNumber", formData.agentWalletNumber);
+    data.append("agentWalletText", formData.agentWalletText);
+    data.append("gateway", JSON.stringify(formData.gateway));
+    data.append("color", formData.color);
+    data.append("backgroundColor", formData.backgroundColor);
+    data.append("buttonColor", formData.buttonColor);
+    data.append("instruction", formData.instruction);
+    data.append("instructionBD", formData.instructionBD);
+    data.append("status", formData.status);
+    data.append("userInputs", JSON.stringify(formData.userInputs));
+
+    if (formData.methodImage instanceof File)
+      data.append("methodImage", formData.methodImage);
+    if (formData.paymentPageImage instanceof File)
+      data.append("paymentPageImage", formData.paymentPageImage);
+
     try {
+      setLoading(true);
       if (editingId) {
-        await dispatch(updateDepositPaymentMethod({ id: editingId, data: formData })).unwrap();
-        toast.success('Payment method updated successfully');
+        await axios.put(
+          `${API_URL}/api/deposit-payment-method/method/${editingId}`,
+          data
+        );
+        toast.success("Updated successfully");
       } else {
-        await dispatch(createDepositPaymentMethod(formData)).unwrap();
-        toast.success('Payment method created successfully');
+        await axios.post(`${API_URL}/api/deposit-payment-method/method`, data);
+        toast.success("Created successfully");
       }
       resetForm();
+      fetchMethods();
     } catch (err) {
-      toast.error('Failed to save payment method');
+      toast.error(err.response?.data?.msg || "Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleEdit = async (id) => {
     try {
-      const paymentMethod = await dispatch(getDepositPaymentMethodById(id)).unwrap();
+      setLoading(true);
+      const res = await axios.get(
+        `${API_URL}/api/deposit-payment-method/method/${id}`
+      );
+      const m = res.data.data;
       setFormData({
-        ...paymentMethod,
-        instruction: paymentMethod.instruction || '',
-        instructionBD: paymentMethod.instructionBD || '',
-        agentWalletNumber: paymentMethod.agentWalletNumber || '', // New field
-        agentWalletText: paymentMethod.agentWalletText || '', // New field
+        ...m,
+        methodImage: m.methodImage || null,
+        paymentPageImage: m.paymentPageImage || null,
+        gateway: m.gateway || [],
+        userInputs: m.userInputs || [],
       });
       setEditingId(id);
       setErrors({});
     } catch (err) {
-      toast.error('Failed to fetch payment method');
+      toast.error("Failed to load");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this payment method?')) {
-      try {
-        await dispatch(deleteDepositPaymentMethod(id)).unwrap();
-        toast.success('Payment method deleted successfully');
-      } catch (err) {
-        toast.error('Failed to delete payment method');
-      }
+    if (!window.confirm("Delete this method?")) return;
+    try {
+      await axios.delete(`${API_URL}/api/deposit-payment-method/method/${id}`);
+      toast.success("Deleted");
+      fetchMethods();
+    } catch (err) {
+      toast.error("Delete failed");
     }
   };
 
   const resetForm = () => {
     setFormData({
-      methodName: '',
-      methodNameBD: '',
-      agentWalletNumber: '', // New field
-      agentWalletText: '', // New field
-      methodImage: '',
+      methodName: "",
+      methodNameBD: "",
+      agentWalletNumber: "",
+      agentWalletText: "",
+      methodImage: null,
+      paymentPageImage: null,
       gateway: [],
-      color: '#000000',
-      backgroundColor: '#ffffff',
-      buttonColor: '#000000',
-      paymentPageImage: '',
-      instruction: '',
-      instructionBD: '',
-      status: 'active',
+      color: "#000000",
+      backgroundColor: "#ffffff",
+      buttonColor: "#000000",
+      instruction: "",
+      instructionBD: "",
+      status: "active",
       userInputs: [],
     });
-    setNewUserInput({
-      type: 'text',
-      isRequired: 'false',
-      label: '',
-      labelBD: '',
-      fieldInstruction: '',
-      fieldInstructionBD: '',
-      name: '',
-    });
-    setEditingUserInput(null);
-    setEditingIndex(null);
-    setGatewayInput('');
-    setGatewayError('');
     setEditingId(null);
+    setGatewayInput("");
     setErrors({});
-    setIsAddModalOpen(false);
-    setIsUpdateModalOpen(false);
   };
 
+  // Gateway
+  const addGateway = () => {
+    const val = gatewayInput.trim();
+    if (!val) return;
+    if (formData.gateway.includes(val)) return toast.error("Already added");
+    setFormData((p) => ({ ...p, gateway: [...p.gateway, val] }));
+    setGatewayInput("");
+  };
+
+  // User Input Modals
   const openAddModal = () => {
     setNewUserInput({
-      type: 'text',
-      isRequired: 'false',
-      label: '',
-      labelBD: '',
-      fieldInstruction: '',
-      fieldInstructionBD: '',
-      name: '',
+      type: "text",
+      isRequired: "false",
+      label: "",
+      labelBD: "",
+      fieldInstruction: "",
+      fieldInstructionBD: "",
+      name: "",
     });
-    setErrors({});
     setIsAddModalOpen(true);
   };
 
-  const openUpdateModal = (input, index) => {
+  const addUserInput = () => {
+    if (!newUserInput.name.trim()) return toast.error("Name required");
+    setFormData((p) => ({
+      ...p,
+      userInputs: [...p.userInputs, { ...newUserInput }],
+    }));
+    setIsAddModalOpen(false);
+    toast.success("Field added");
+  };
+
+  const openEditModal = (input, idx) => {
     setEditingUserInput({ ...input });
-    setEditingIndex(index);
-    setErrors({});
+    setEditingUserIndex(idx);
     setIsUpdateModalOpen(true);
   };
 
-  const closeAddModal = () => setIsAddModalOpen(false);
-  const closeUpdateModal = () => {
-    setEditingUserInput(null);
-    setEditingIndex(null);
+  const updateUserInput = () => {
+    if (!editingUserInput.name.trim()) return toast.error("Name required");
+    const updated = [...formData.userInputs];
+    updated[editingUserIndex] = editingUserInput;
+    setFormData((p) => ({ ...p, userInputs: updated }));
     setIsUpdateModalOpen(false);
+    toast.success("Updated");
+  };
+
+  const deleteUserInput = (idx) => {
+    setFormData((p) => ({
+      ...p,
+      userInputs: p.userInputs.filter((_, i) => i !== idx),
+    }));
+    toast.success("Deleted");
   };
 
   return (
     <Container>
       <Title>Manage Deposit Payment Methods</Title>
 
-      {/* Form */}
       <FormCard onSubmit={handleSubmit}>
         <Grid>
           <InputGroup>
             <Label>Method Name (English)</Label>
             <Input
-              type="text"
-              name="methodName"
               value={formData.methodName}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, methodName: e.target.value }))
+              }
               error={errors.methodName}
             />
             {errors.methodName && <ErrorText>{errors.methodName}</ErrorText>}
           </InputGroup>
+
           <InputGroup>
             <Label>Method Name (Bangla)</Label>
             <Input
-              type="text"
-              name="methodNameBD"
               value={formData.methodNameBD}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, methodNameBD: e.target.value }))
+              }
               error={errors.methodNameBD}
             />
-            {errors.methodNameBD && <ErrorText>{errors.methodNameBD}</ErrorText>}
+            {errors.methodNameBD && (
+              <ErrorText>{errors.methodNameBD}</ErrorText>
+            )}
           </InputGroup>
+
           <InputGroup>
             <Label>Agent Wallet Number</Label>
             <Input
-              type="text"
-              name="agentWalletNumber"
               value={formData.agentWalletNumber}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                setFormData((p) => ({
+                  ...p,
+                  agentWalletNumber: e.target.value,
+                }))
+              }
               error={errors.agentWalletNumber}
             />
-            {errors.agentWalletNumber && <ErrorText>{errors.agentWalletNumber}</ErrorText>}
+            {errors.agentWalletNumber && (
+              <ErrorText>{errors.agentWalletNumber}</ErrorText>
+            )}
           </InputGroup>
+
           <InputGroup>
             <Label>Agent Wallet Text</Label>
             <Input
-              type="text"
-              name="agentWalletText"
               value={formData.agentWalletText}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, agentWalletText: e.target.value }))
+              }
               error={errors.agentWalletText}
             />
-            {errors.agentWalletText && <ErrorText>{errors.agentWalletText}</ErrorText>}
+            {errors.agentWalletText && (
+              <ErrorText>{errors.agentWalletText}</ErrorText>
+            )}
           </InputGroup>
+
+          {/* Method Image */}
           <InputGroup>
-            <Label>Method Image</Label>
+            <Label>Method Image {editingId && "(leave blank to keep)"}</Label>
             <FileInput
               type="file"
               accept="image/*"
-              onChange={(e) => handleFileChange(e, 'methodImage')}
-              error={errors.methodImage}
+              onChange={(e) =>
+                setFormData((p) => ({
+                  ...p,
+                  methodImage: e.target.files[0] || null,
+                }))
+              }
             />
-            {formData.methodImage && <ImagePreview src={`${baseURL_For_IMG_UPLOAD}s/${formData.methodImage}`} alt="Method Preview" />}
+            {formData.methodImage &&
+              typeof formData.methodImage === "string" && (
+                <ImagePreview
+                  src={`${API_URL}${formData.methodImage}`}
+                  alt="current"
+                />
+              )}
+            {formData.methodImage instanceof File && (
+              <ImagePreview
+                src={URL.createObjectURL(formData.methodImage)}
+                alt="preview"
+              />
+            )}
             {errors.methodImage && <ErrorText>{errors.methodImage}</ErrorText>}
           </InputGroup>
+
+          {/* Payment Page Image */}
           <InputGroup>
-            <Label>Gateways</Label>
-            <GatewayInputWrapper>
-              <Input
-                type="text"
-                value={gatewayInput}
-                onChange={handleGatewayInputChange}
-                placeholder="Enter gateway name"
-                error={gatewayError}
+            <Label>Payment Page Image (optional)</Label>
+            <FileInput
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                setFormData((p) => ({
+                  ...p,
+                  paymentPageImage: e.target.files[0] || null,
+                }))
+              }
+            />
+            {formData.paymentPageImage &&
+              typeof formData.paymentPageImage === "string" && (
+                <ImagePreview
+                  src={`${API_URL}${formData.paymentPageImage}`}
+                  alt="current"
+                />
+              )}
+            {formData.paymentPageImage instanceof File && (
+              <ImagePreview
+                src={URL.createObjectURL(formData.paymentPageImage)}
+                alt="preview"
               />
-              <Button type="button" onClick={addGateway} small primary>
-                Add
-              </Button>
-            </GatewayInputWrapper>
-            {gatewayError && <ErrorText>{gatewayError}</ErrorText>}
-            {formData.gateway.length > 0 && (
-              <GatewayContainer>
-                {formData.gateway.map((gateway, index) => (
-                  <GatewayTag key={index}>
-                    {gateway}
-                    <RemoveGatewayButton onClick={() => removeGateway(gateway)}>×</RemoveGatewayButton>
-                  </GatewayTag>
-                ))}
-              </GatewayContainer>
             )}
           </InputGroup>
+
+          {/* Gateways */}
+          <InputGroup>
+            <Label>Gateways</Label>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <Input
+                value={gatewayInput}
+                onChange={(e) => setGatewayInput(e.target.value)}
+                placeholder="Type gateway name"
+              />
+              <Button type="button" small primary onClick={addGateway}>
+                Add
+              </Button>
+            </div>
+            <GatewayContainer>
+              {formData.gateway.map((g, i) => (
+                <GatewayTag key={i}>
+                  {g}
+                  <RemoveBtn
+                    onClick={() =>
+                      setFormData((p) => ({
+                        ...p,
+                        gateway: p.gateway.filter((_, x) => x !== i),
+                      }))
+                    }
+                  >
+                    ×
+                  </RemoveBtn>
+                </GatewayTag>
+              ))}
+            </GatewayContainer>
+          </InputGroup>
+
           <InputGroup>
             <Label>Text Color</Label>
             <Input
               type="color"
-              name="color"
               value={formData.color}
-              onChange={handleInputChange}
-              error={errors.color}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, color: e.target.value }))
+              }
             />
-            {errors.color && <ErrorText>{errors.color}</ErrorText>}
           </InputGroup>
+
           <InputGroup>
             <Label>Background Color</Label>
             <Input
               type="color"
-              name="backgroundColor"
               value={formData.backgroundColor}
-              onChange={handleInputChange}
-              error={errors.backgroundColor}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, backgroundColor: e.target.value }))
+              }
             />
-            {errors.backgroundColor && <ErrorText>{errors.backgroundColor}</ErrorText>}
           </InputGroup>
+
           <InputGroup>
             <Label>Button Color</Label>
             <Input
               type="color"
-              name="buttonColor"
               value={formData.buttonColor}
-              onChange={handleInputChange}
-              error={errors.buttonColor}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, buttonColor: e.target.value }))
+              }
             />
-            {errors.buttonColor && <ErrorText>{errors.buttonColor}</ErrorText>}
           </InputGroup>
-          <InputGroup>
-            <Label>Payment Page Image</Label>
-            <FileInput
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFileChange(e, 'paymentPageImage')}
-            />
-            {formData.paymentPageImage && (
-              <ImagePreview src={`${baseURL_For_IMG_UPLOAD}s/${formData.paymentPageImage}`} alt="Payment Page Preview" />
-            )}
-          </InputGroup>
+
           <InputGroup>
             <Label>Status</Label>
-            <Select name="status" value={formData.status} onChange={handleInputChange}>
+            <Select
+              value={formData.status}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, status: e.target.value }))
+              }
+            >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </Select>
           </InputGroup>
         </Grid>
+
         <InputGroup>
           <Label>Instruction (English)</Label>
           <JoditEditor
-            ref={instructionEditorRef}
             value={formData.instruction}
-            onChange={(newContent) => handleEditorChange(newContent, 'instruction')}
+            onChange={(c) => setFormData((p) => ({ ...p, instruction: c }))}
           />
         </InputGroup>
+
         <InputGroup>
           <Label>Instruction (Bangla)</Label>
           <JoditEditor
-            ref={instructionBDEditorRef}
             value={formData.instructionBD}
-            onChange={(newContent) => handleEditorChange(newContent, 'instructionBD')}
+            onChange={(c) => setFormData((p) => ({ ...p, instructionBD: c }))}
           />
         </InputGroup>
+
+        {/* User Inputs Section */}
         <InputGroup>
           <Label>User Input Fields</Label>
           <ButtonWrapper>
-            <Button type="button" onClick={openAddModal} primary>
-              Add New User Input
+            <Button type="button" primary onClick={openAddModal}>
+              Add New Field
             </Button>
           </ButtonWrapper>
         </InputGroup>
+
         {formData.userInputs.length > 0 && (
-          <InputGroup>
-            <Label>Saved User Inputs</Label>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Name</TableHeader>
-                  <TableHeader>Type</TableHeader>
-                  <TableHeader>Label (EN)</TableHeader>
-                  <TableHeader>Label (BD)</TableHeader>
-                  <TableHeader>Is Required</TableHeader>
-                  <TableHeader>Instruction (EN)</TableHeader>
-                  <TableHeader>Instruction (BD)</TableHeader>
-                  <TableHeader>Actions</TableHeader>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Name</TableHeader>
+                <TableHeader>Type</TableHeader>
+                <TableHeader>Required</TableHeader>
+                <TableHeader>Actions</TableHeader>
+              </TableRow>
+            </TableHead>
+            <tbody>
+              {formData.userInputs.map((inp, i) => (
+                <TableRow key={i}>
+                  <TableCell>{inp.name}</TableCell>
+                  <TableCell>{inp.type}</TableCell>
+                  <TableCell>
+                    {inp.isRequired === "true" ? "Yes" : "No"}
+                  </TableCell>
+                  <TableCell>
+                    <Button small primary onClick={() => openEditModal(inp, i)}>
+                      Edit
+                    </Button>{" "}
+                    <Button small danger onClick={() => deleteUserInput(i)}>
+                      Delete
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <tbody>
-                {formData.userInputs.map((input, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{input.name || ''}</TableCell>
-                    <TableCell>{input.type}</TableCell>
-                    <TableCell>{input.label || ''}</TableCell>
-                    <TableCell>{input.labelBD || ''}</TableCell>
-                    <TableCell>{input.isRequired}</TableCell>
-                    <TableCell>{input.fieldInstruction || ''}</TableCell>
-                    <TableCell>{input.fieldInstructionBD || ''}</TableCell>
-                    <TableCell>
-                      <ActionButtons>
-                        <Button
-                          type="button"
-                          onClick={() => openUpdateModal(input, index)}
-                          small
-                          primary
-                        >
-                          Update
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={() => deleteUserInput(index)}
-                          small
-                          danger
-                        >
-                          Delete
-                        </Button>
-                      </ActionButtons>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </tbody>
-            </Table>
-          </InputGroup>
+              ))}
+            </tbody>
+          </Table>
         )}
 
         <ButtonWrapper>
-          <Button type="submit" primary disabled={isLoading}>
-            {isLoading ? 'Saving...' : editingId ? 'Update' : 'Create'}
+          <Button type="submit" primary disabled={loading}>
+            {loading ? "Saving..." : editingId ? "Update" : "Create"}
           </Button>
           {editingId && (
             <Button type="button" onClick={resetForm}>
@@ -904,231 +732,252 @@ const AddDepositMethods = () => {
         </ButtonWrapper>
       </FormCard>
 
-      {/* Add User Input Modal */}
+      {/* ==================== ADD USER INPUT MODAL ==================== */}
       {isAddModalOpen && (
-        <ModalOverlay onClick={closeAddModal}>
+        <ModalOverlay onClick={() => setIsAddModalOpen(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
-              <ModalTitle>Add New User Input</ModalTitle>
-              <CloseButton onClick={closeAddModal}>×</CloseButton>
+              <ModalTitle>Add New User Input Field</ModalTitle>
+              <CloseButton onClick={() => setIsAddModalOpen(false)}>
+                ×
+              </CloseButton>
             </ModalHeader>
-            <UserInputCard>
-              <Grid>
-                <InputGroup>
-                  <Label>Type</Label>
-                  <Select
-                    name="type"
-                    value={newUserInput.type}
-                    onChange={handleNewUserInputChange}
-                  >
-                    <option value="text">Text</option>
-                    <option value="number">Number</option>
-                    <option value="file">File</option>
-                  </Select>
-                </InputGroup>
-                <InputGroup>
-                  <Label>Name</Label>
-                  <Input
-                    type="text"
-                    name="name"
-                    value={newUserInput.name}
-                    onChange={handleNewUserInputChange}
-                    error={errors['newUserInput.name']}
-                  />
-                  {errors['newUserInput.name'] && (
-                    <ErrorText>{errors['newUserInput.name']}</ErrorText>
-                  )}
-                </InputGroup>
-                <InputGroup>
-                  <Label>Label (English)</Label>
-                  <Input
-                    type="text"
-                    name="label"
-                    value={newUserInput.label}
-                    onChange={handleNewUserInputChange}
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <Label>Label (Bangla)</Label>
-                  <Input
-                    type="text"
-                    name="labelBD"
-                    value={newUserInput.labelBD}
-                    onChange={handleNewUserInputChange}
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <Label>Is Required</Label>
-                  <Select
-                    name="isRequired"
-                    value={newUserInput.isRequired}
-                    onChange={handleNewUserInputChange}
-                  >
-                    <option value="true">True</option>
-                    <option value="false">False</option>
-                  </Select>
-                </InputGroup>
-                <InputGroup>
-                  <Label>Field Instruction (English)</Label>
-                  <Input
-                    type="text"
-                    name="fieldInstruction"
-                    value={newUserInput.fieldInstruction}
-                    onChange={handleNewUserInputChange}
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <Label>Field Instruction (Bangla)</Label>
-                  <Input
-                    type="text"
-                    name="fieldInstructionBD"
-                    value={newUserInput.fieldInstructionBD}
-                    onChange={handleNewUserInputChange}
-                  />
-                </InputGroup>
-              </Grid>
-            </UserInputCard>
-            <div className="flex gap-4">
-              <Button type="button" onClick={addUserInput} primary>
-                Add User Input
+            <Grid>
+              <InputGroup>
+                <Label>Field Name (code)</Label>
+                <Input
+                  value={newUserInput.name}
+                  onChange={(e) =>
+                    setNewUserInput((p) => ({ ...p, name: e.target.value }))
+                  }
+                  placeholder="e.g. transaction_id"
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>Type</Label>
+                <Select
+                  value={newUserInput.type}
+                  onChange={(e) =>
+                    setNewUserInput((p) => ({ ...p, type: e.target.value }))
+                  }
+                >
+                  <option value="text">Text</option>
+                  <option value="number">Number</option>
+                  <option value="file">File Upload</option>
+                </Select>
+              </InputGroup>
+              <InputGroup>
+                <Label>Label (English)</Label>
+                <Input
+                  value={newUserInput.label}
+                  onChange={(e) =>
+                    setNewUserInput((p) => ({ ...p, label: e.target.value }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>Label (Bangla)</Label>
+                <Input
+                  value={newUserInput.labelBD}
+                  onChange={(e) =>
+                    setNewUserInput((p) => ({ ...p, labelBD: e.target.value }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>Field Instruction (English)</Label>
+                <Input
+                  value={newUserInput.fieldInstruction}
+                  onChange={(e) =>
+                    setNewUserInput((p) => ({
+                      ...p,
+                      fieldInstruction: e.target.value,
+                    }))
+                  }
+                  placeholder="e.g. Enter your transaction ID"
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>Field Instruction (Bangla)</Label>
+                <Input
+                  value={newUserInput.fieldInstructionBD}
+                  onChange={(e) =>
+                    setNewUserInput((p) => ({
+                      ...p,
+                      fieldInstructionBD: e.target.value,
+                    }))
+                  }
+                  placeholder="আপনার ট্রানজেকশন আইডি দিন"
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>Required?</Label>
+                <Select
+                  value={newUserInput.isRequired}
+                  onChange={(e) =>
+                    setNewUserInput((p) => ({
+                      ...p,
+                      isRequired: e.target.value,
+                    }))
+                  }
+                >
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </Select>
+              </InputGroup>
+            </Grid>
+            <ButtonWrapper>
+              <Button primary onClick={addUserInput}>
+                Add Field
               </Button>
-              <Button type="button" onClick={closeAddModal}>
-                Cancel
-              </Button>
-            </div>
+              <Button onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
+            </ButtonWrapper>
           </ModalContent>
         </ModalOverlay>
       )}
 
-      {/* Update User Input Modal */}
+      {/* ==================== EDIT USER INPUT MODAL ==================== */}
       {isUpdateModalOpen && editingUserInput && (
-        <ModalOverlay onClick={closeUpdateModal}>
+        <ModalOverlay onClick={() => setIsUpdateModalOpen(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
-              <ModalTitle>Update User Input</ModalTitle>
-              <CloseButton onClick={closeUpdateModal}>×</CloseButton>
+              <ModalTitle>Edit User Input Field</ModalTitle>
+              <CloseButton onClick={() => setIsUpdateModalOpen(false)}>
+                ×
+              </CloseButton>
             </ModalHeader>
-            <UserInputCard>
-              <Grid>
-                <InputGroup>
-                  <Label>Type</Label>
-                  <Select
-                    name="type"
-                    value={editingUserInput.type}
-                    onChange={handleEditingUserInputChange}
-                  >
-                    <option value="text">Text</option>
-                    <option value="number">Number</option>
-                    <option value="file">File</option>
-                  </Select>
-                </InputGroup>
-                <InputGroup>
-                  <Label>Name</Label>
-                  <Input
-                    type="text"
-                    name="name"
-                    value={editingUserInput.name}
-                    onChange={handleEditingUserInputChange}
-                    error={errors['editingUserInput.name']}
-                  />
-                  {errors['editingUserInput.name'] && (
-                    <ErrorText>{errors['editingUserInput.name']}</ErrorText>
-                  )}
-                </InputGroup>
-                <InputGroup>
-                  <Label>Label (English)</Label>
-                  <Input
-                    type="text"
-                    name="label"
-                    value={editingUserInput.label}
-                    onChange={handleEditingUserInputChange}
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <Label>Label (Bangla)</Label>
-                  <Input
-                    type="text"
-                    name="labelBD"
-                    value={editingUserInput.labelBD}
-                    onChange={handleEditingUserInputChange}
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <Label>Is Required</Label>
-                  <Select
-                    name="isRequired"
-                    value={editingUserInput.isRequired}
-                    onChange={handleEditingUserInputChange}
-                  >
-                    <option value="true">True</option>
-                    <option value="false">False</option>
-                  </Select>
-                </InputGroup>
-                <InputGroup>
-                  <Label>Field Instruction (English)</Label>
-                  <Input
-                    type="text"
-                    name="fieldInstruction"
-                    value={editingUserInput.fieldInstruction}
-                    onChange={handleEditingUserInputChange}
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <Label>Field Instruction (Bangla)</Label>
-                  <Input
-                    type="text"
-                    name="fieldInstructionBD"
-                    value={editingUserInput.fieldInstructionBD}
-                    onChange={handleEditingUserInputChange}
-                  />
-                </InputGroup>
-              </Grid>
-            </UserInputCard>
-            <div className="flex gap-4">
-              <Button type="button" onClick={updateUserInput} primary>
+            <Grid>
+              <InputGroup>
+                <Label>Field Name</Label>
+                <Input
+                  value={editingUserInput.name}
+                  onChange={(e) =>
+                    setEditingUserInput((p) => ({ ...p, name: e.target.value }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>Type</Label>
+                <Select
+                  value={editingUserInput.type}
+                  onChange={(e) =>
+                    setEditingUserInput((p) => ({ ...p, type: e.target.value }))
+                  }
+                >
+                  <option value="text">Text</option>
+                  <option value="number">Number</option>
+                  <option value="file">File Upload</option>
+                </Select>
+              </InputGroup>
+              <InputGroup>
+                <Label>Label (English)</Label>
+                <Input
+                  value={editingUserInput.label}
+                  onChange={(e) =>
+                    setEditingUserInput((p) => ({
+                      ...p,
+                      label: e.target.value,
+                    }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>Label (Bangla)</Label>
+                <Input
+                  value={editingUserInput.labelBD}
+                  onChange={(e) =>
+                    setEditingUserInput((p) => ({
+                      ...p,
+                      labelBD: e.target.value,
+                    }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>Field Instruction (English)</Label>
+                <Input
+                  value={editingUserInput.fieldInstruction}
+                  onChange={(e) =>
+                    setEditingUserInput((p) => ({
+                      ...p,
+                      fieldInstruction: e.target.value,
+                    }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>Field Instruction (Bangla)</Label>
+                <Input
+                  value={editingUserInput.fieldInstructionBD}
+                  onChange={(e) =>
+                    setEditingUserInput((p) => ({
+                      ...p,
+                      fieldInstructionBD: e.target.value,
+                    }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>Required?</Label>
+                <Select
+                  value={editingUserInput.isRequired}
+                  onChange={(e) =>
+                    setEditingUserInput((p) => ({
+                      ...p,
+                      isRequired: e.target.value,
+                    }))
+                  }
+                >
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </Select>
+              </InputGroup>
+            </Grid>
+            <ButtonWrapper>
+              <Button primary onClick={updateUserInput}>
                 Save Changes
               </Button>
-              <Button type="button" onClick={closeUpdateModal}>
+              <Button onClick={() => setIsUpdateModalOpen(false)}>
                 Cancel
               </Button>
-            </div>
+            </ButtonWrapper>
           </ModalContent>
         </ModalOverlay>
       )}
 
-      {/* Payment Methods List */}
+      {/* ==================== LIST OF METHODS ==================== */}
       <div>
-        <h2 className="text-xl font-medium text-gray-700 mb-4">Payment Methods</h2>
-        {isLoading ? (
-          <p className="text-gray-600">Loading...</p>
-        ) : depositPaymentMethods.length === 0 ? (
-          <p className="text-gray-600">No payment methods found.</p>
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">
+          All Deposit Methods
+        </h2>
+        {loading ? (
+          <p>Loading...</p>
+        ) : methods.length === 0 ? (
+          <p>No methods found</p>
         ) : (
           <MethodsGrid>
-            {depositPaymentMethods.map((method) => (
-              <MethodCard key={method._id}>
-                <MethodImage src={`${baseURL_For_IMG_UPLOAD}s/${method.methodImage}`} alt={method.methodName} />
-                <h3 className="text-lg font-medium text-gray-900">{method.methodName}</h3>
-                <p className="text-sm text-gray-600">Status: {method.status}</p>
-                <p className="text-sm text-gray-600">Gateways: {method.gateway.join(', ')}</p>
-                <p className="text-sm text-gray-600">Agent Wallet Number: {method.agentWalletNumber}</p> {/* New field */}
-                <p className="text-sm text-gray-600">Agent Wallet Text: {method.agentWalletText}</p> {/* New field */}
-                <div className="mt-4 flex justify-end gap-2">
+            {methods.map((m) => (
+              <MethodCard key={m._id}>
+                {m.methodImage && (
+                  <MethodImage
+                    src={`${API_URL}${m.methodImage}`}
+                    alt={m.methodName}
+                  />
+                )}
+                <h3 className="text-lg font-bold mt-3">{m.methodName}</h3>
+                <p className="text-sm text-gray-600">{m.methodNameBD}</p>
+                <p className="text-sm">Wallet: {m.agentWalletNumber}</p>
+                <p className="text-sm">Status: {m.status}</p>
+                <div className="mt-4 flex justify-end gap-3">
                   <Button
-                    className="text-sm mx-1"
-                    onClick={() => handleEdit(method._id)}
-                    style={{ background: 'transparent', color: '#2563eb' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(37, 99, 235, 0.1)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    onClick={() => handleEdit(m._id)}
+                    style={{ background: "#3b82f6", color: "white" }}
                   >
                     Edit
                   </Button>
                   <Button
-                    className="text-sm mx-1"
-                    onClick={() => handleDelete(method._id)}
-                    style={{ background: 'transparent', color: '#dc2626' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(220, 38, 38, 0.1)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    onClick={() => handleDelete(m._id)}
+                    style={{ background: "#ef4444", color: "white" }}
                   >
                     Delete
                   </Button>
@@ -1141,4 +990,5 @@ const AddDepositMethods = () => {
     </Container>
   );
 };
+
 export default AddDepositMethods;

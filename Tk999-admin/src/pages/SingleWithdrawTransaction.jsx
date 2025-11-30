@@ -606,6 +606,7 @@ export default function SingleWithdrawTransaction() {
                     )}
                   </DetailValue>
                 </DetailCard>
+                
               ))
             ) : (
               <DetailCard>

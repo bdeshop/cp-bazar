@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import axios from 'axios';
-import { FaEdit, FaTrash, FaSearch, FaEye, FaSync, FaFilter, FaChevronDown } from 'react-icons/fa';
-import { useNavigate, useParams } from 'react-router-dom';
-import { baseURL } from '../utils/baseURL';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import axios from "axios";
+import {
+  FaEdit,
+  FaTrash,
+  FaSearch,
+  FaEye,
+  FaSync,
+  FaFilter,
+  FaChevronDown,
+} from "react-icons/fa";
+import { useNavigate, useParams } from "react-router-dom";
+import { API_URL, baseURL } from "../utils/baseURL";
 
 // Styled Components
 const Container = styled.div`
@@ -58,7 +66,7 @@ const SearchFilterWrapper = styled.div`
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
     gap: 0.5rem;
-    display: ${props => props.isOpen ? 'block' : 'none'};
+    display: ${(props) => (props.isOpen ? "grid" : "none")};
   }
 `;
 
@@ -97,27 +105,6 @@ const Input = styled.input`
   }
 `;
 
-const Textarea = styled.textarea`
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  background: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: border-color 0.2s;
-  resize: vertical;
-  min-height: 100px;
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-  @media (max-width: 640px) {
-    padding: 0.5rem;
-    font-size: 0.875rem;
-  }
-`;
-
 const Select = styled.select`
   padding: 0.75rem;
   border: 1px solid #e2e8f0;
@@ -125,7 +112,6 @@ const Select = styled.select`
   font-size: 0.875rem;
   background: white;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: border-color 0.2s;
   &:focus {
     outline: none;
     border-color: #3b82f6;
@@ -133,7 +119,21 @@ const Select = styled.select`
   }
   @media (max-width: 640px) {
     padding: 0.5rem;
-    font-size: 0.875rem;
+  }
+`;
+
+const Textarea = styled.textarea`
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  background: white;
+  resize: vertical;
+  min-height: 100px;
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
 `;
 
@@ -141,18 +141,18 @@ const Button = styled.button`
   padding: 0.75rem;
   border-radius: 0.375rem;
   border: none;
-  background: ${props => props.bgColor || '#3b82f6'};
+  background: ${(props) => props.bgColor || "#3b82f6"};
   color: white;
   font-size: 0.875rem;
   cursor: pointer;
-  display: flex;
+  margin-left:8px;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.2s, transform 0.1s;
-  position: relative;
+  transition: all 0.2s;
   &:hover {
-    background: ${props => props.hoverBgColor || '#2563eb'};
+    background: ${(props) => props.hoverBgColor || "#2563eb"};
     transform: translateY(-1px);
   }
   &:disabled {
@@ -166,23 +166,26 @@ const Button = styled.button`
   }
 `;
 
-const Tooltip = styled.span`
-  visibility: hidden;
-  position: absolute;
-  top: -2rem;
-  background: #1e293b;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
+const StatusBadge = styled.span`
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
   font-size: 0.75rem;
-  white-space: nowrap;
-  z-index: 10;
-  ${Button}:hover & {
-    visibility: visible;
-  }
-  @media (max-width: 640px) {
-    display: none;
-  }
+  font-weight: 500;
+  color: white;
+  background: ${(props) => {
+    switch (props.status) {
+      case "completed":
+        return "#22c55e";
+      case "pending":
+        return "#f59e0b";
+      case "failed":
+        return "#ef4444";
+      case "cancelled":
+        return "#6b7280";
+      default:
+        return "#3b82f6";
+    }
+  }};
 `;
 
 const TableWrapper = styled.div`
@@ -190,10 +193,6 @@ const TableWrapper = styled.div`
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow-x: auto;
-  @media (max-width: 640px) {
-    background: transparent;
-    box-shadow: none;
-  }
 `;
 
 const Table = styled.table`
@@ -214,12 +213,6 @@ const Th = styled.th`
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  &:first-child {
-    border-top-left-radius: 0.5rem;
-  }
-  &:last-child {
-    border-top-right-radius: 0.5rem;
-  }
 `;
 
 const Td = styled.td`
@@ -266,32 +259,6 @@ const MobileCardRow = styled.div`
   justify-content: space-between;
 `;
 
-const StatusBadge = styled.span`
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: white;
-  background: ${props => {
-    switch (props.status) {
-      case 'completed': return '#22c55e';
-      case 'pending': return '#f59e0b';
-      case 'failed': return '#ef4444';
-      case 'cancelled': return '#6b7280';
-      default: return '#3b82f6';
-    }
-  }};
-`;
-
-const ActionButtons = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  @media (max-width: 640px) {
-    gap: 0.25rem;
-    justify-content: flex-end;
-  }
-`;
-
 const Modal = styled.div`
   position: fixed;
   inset: 0;
@@ -303,7 +270,6 @@ const Modal = styled.div`
   padding: 1rem;
   @media (max-width: 640px) {
     align-items: flex-end;
-    padding: 0;
   }
 `;
 
@@ -312,18 +278,8 @@ const ModalContent = styled.div`
   padding: 1.5rem;
   border-radius: 0.5rem;
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.2s ease;
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  @media (max-width: 640px) {
-    max-width: 100%;
-    border-radius: 0.5rem 0.5rem 0 0;
-    padding: 1rem;
-  }
+  max-width: 420px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 `;
 
 const ModalTitle = styled.h3`
@@ -331,213 +287,167 @@ const ModalTitle = styled.h3`
   font-weight: 600;
   color: #1e293b;
   margin-bottom: 1rem;
-  @media (max-width: 640px) {
-    font-size: 1rem;
-  }
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  @media (max-width: 640px) {
-    gap: 0.75rem;
-  }
-`;
-
-const Label = styled.label`
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #1e293b;
-  @media (max-width: 640px) {
-    font-size: 0.75rem;
-  }
 `;
 
 const Message = styled.p`
-  font-size: 0.75rem;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  ${props => props.error ? `
-    color: #dc2626;
-    background: #fef2f2;
-  ` : `
-    color: #16a34a;
-    background: #f0fdf4;
-  `}
-  @media (max-width: 640px) {
-    font-size: 0.6875rem;
-  }
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  text-align: center;
+  background: ${(props) => (props.error ? "#fee2e2" : "#dcfce7")};
+  color: ${(props) => (props.error ? "#991b1b" : "#166534")};
 `;
 
 const LoadingSpinner = styled.div`
-  display: inline-block;
-  border: 3px solid #e5e7eb;
-  border-top: 3px solid #3b82f6;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 40px;
+  height: 40px;
   animation: spin 1s linear infinite;
-  margin: 1rem auto;
+  margin: 2rem auto;
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  @media (max-width: 640px) {
-    width: 20px;
-    height: 20px;
-    border-width: 2px;
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 
 export default function DepositTransaction() {
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ amount: '', status: 'pending', reason: '' });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [formData, setFormData] = useState({
+    amount: "",
+    status: "pending",
+    reason: "",
+  });
+  const [message, setMessage] = useState({ text: "", type: "" });
   const [editId, setEditId] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const navigate = useNavigate();
-   const { filter } = useParams(); // Extract filter parameter from URL
+  const { filter } = useParams(); // URL থেকে filter নেওয়া হচ্ছে
 
+  // URL থেকে ফিল্টার সেট করা
   useEffect(() => {
-    // Set filterStatus based on URL filter parameter
-    if (filter && ['pending', 'success', 'reject'].includes(filter)) {
-      setFilterStatus(filter === 'success' ? 'completed' : filter === 'reject' ? 'failed' : filter);
-    } else {
-      setFilterStatus(''); // No filter, show all transactions
-    }
-    fetchTransactions();
+    if (filter === "success") setFilterStatus("completed");
+    else if (filter === "reject") setFilterStatus("failed");
+    else if (filter === "pending") setFilterStatus("pending");
+    else setFilterStatus("");
   }, [filter]);
 
-
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
-
-  useEffect(() => {
-    if (filterStatus) {
-      setFilteredTransactions(
-        transactions.filter((transaction) => transaction.status === filterStatus)
-      );
-    } else {
-      setFilteredTransactions(transactions);
-    }
-  }, [transactions, filterStatus]);
-
-  const fetchTransactions = async (query = '') => {
+  // ডাটা ফেচ করা
+  const fetchTransactions = async () => {
     setLoading(true);
     try {
-      let url = `${baseURL}/deposit-transaction`;
-      if (query) url = `${baseURL}/deposit-search-transaction/search?query=${encodeURIComponent(query)}`;
+      const res = await axios.get(
+        `${API_URL}/api/deposit/deposit-transaction`
       
-      const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      if (!response.data.success || !response.data.data) {
-        throw new Error('No transaction data received');
+      );
+
+      if (res.data.success) {
+        const data = res.data.data.reverse();
+        setTransactions(data);
       }
-      setTransactions(response.data.data.slice().reverse());
-      setError('');
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Failed to fetch transactions';
-      setError(errorMessage);
+      setMessage({
+        text: err.response?.data?.message || "Failed to load transactions",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = () => {
-    if (!searchQuery.trim() && !filterStatus) {
-      setError('Please enter a search term or select a filter.');
-      return;
-    }
-    if (searchQuery.trim()) {
-      fetchTransactions(searchQuery);
-    }
-  };
-
-  const handleRefresh = () => {
-    setSearchQuery('');
-    setFilterStatus('');
-    setError('');
-    setShowFilters(false);
+  useEffect(() => {
     fetchTransactions();
+  }, []);
+
+  // ফিল্টার + সার্চ
+  const applyFilters = () => {
+    let filtered = [...transactions];
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (t) =>
+          t.userId?.name?.toLowerCase().includes(q) ||
+          t.userId?.phoneNumber?.includes(q) ||
+          t.userId?.email?.toLowerCase().includes(q)
+      );
+    }
+
+    if (filterStatus) {
+      filtered = filtered.filter((t) => t.status === filterStatus);
+    }
+
+    setFilteredTransactions(filtered);
   };
 
-  const openModal = (transaction) => {
-    setEditId(transaction._id);
+  useEffect(() => {
+    applyFilters();
+  }, [transactions, searchQuery, filterStatus]);
+
+  const openModal = (trx) => {
+    setEditId(trx._id);
     setFormData({
-      amount: transaction.amount,
-      status: transaction.status,
-      reason: transaction.reason || '',
+      amount: trx.amount,
+      status: trx.status,
+      reason: trx.reason || "",
     });
+    setMessage({ text: "", type: "" });
     setShowModal(true);
-    setError('');
-    setSuccess('');
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-    setLoading(true);
 
-    // Validate reason for failed or cancelled status
-    if (['failed', 'cancelled'].includes(formData.status) && !formData.reason.trim()) {
-      setError('Reason is required for failed or cancelled status');
-      setLoading(false);
+    if (
+      ["failed", "cancelled"].includes(formData.status) &&
+      !formData.reason.trim()
+    ) {
+      setMessage({
+        text: "Reason is required for Failed/Cancelled",
+        type: "error",
+      });
       return;
     }
 
+    setLoading(true);
     try {
-      const url = `${baseURL}/deposit-transaction/${editId}`;
-      const response = await axios.put(url, formData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setSuccess('Transaction updated successfully');
-      await fetchTransactions(searchQuery);
-      setTimeout(() => {
-        setShowModal(false);
-        setSuccess('');
-      }, 1500);
+      await axios.put(
+        `${API_URL}/api/deposit/deposit-transaction/${editId}`,
+        formData
+       
+      );
+      setMessage({ text: "Updated successfully!", type: "success" });
+      fetchTransactions();
+      setTimeout(() => setShowModal(false), 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update transaction');
+      setMessage({
+        text: err.response?.data?.message || "Update failed",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this transaction?')) return;
-    setLoading(true);
+    if (!window.confirm("Delete permanently?")) return;
     try {
-      await axios.delete(`${baseURL}/deposit-transaction/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setSuccess('Transaction deleted successfully');
-      await fetchTransactions(searchQuery);
-      setTimeout(() => setSuccess(''), 1500);
+      await axios.delete(`${API_URL}/api/deposit/deposit-transaction/${id}`);
+      setMessage({ text: "Deleted successfully", type: "success" });
+      fetchTransactions();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete transaction');
-    } finally {
-      setLoading(false);
+      setMessage({ text: "Delete failed", type: "error" });
     }
   };
 
-  const viewDetails = (id) => {
-    navigate(`/transaction/${id}`);
-  };
+  const viewDetails = (id) => navigate(`/transaction/${id}`);
 
   return (
     <Container>
@@ -547,9 +457,8 @@ export default function DepositTransaction() {
           <FilterToggle onClick={() => setShowFilters(!showFilters)}>
             <FaFilter /> Filters <FaChevronDown />
           </FilterToggle>
-          <Button onClick={handleRefresh} disabled={loading} title="Refresh">
-            <FaSync />
-            <Tooltip>Refresh</Tooltip>
+          <Button onClick={fetchTransactions} disabled={loading}>
+            <FaSync /> Refresh
           </Button>
         </ControlWrapper>
       </Header>
@@ -557,42 +466,44 @@ export default function DepositTransaction() {
       <SearchFilterWrapper isOpen={showFilters}>
         <Input
           type="text"
-          placeholder="Search by User ID, Name, or Email"
+          placeholder="Search by name, phone, email..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyPress={(e) => e.key === "Enter" && applyFilters()}
         />
         <Select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
         >
-          <option value="">All Statuses</option>
+          <option value="">All Status</option>
           <option value="pending">Pending</option>
           <option value="completed">Completed</option>
           <option value="failed">Failed</option>
           <option value="cancelled">Cancelled</option>
         </Select>
-        <Button onClick={handleSearch} disabled={loading}>
-          <FaSearch />
-          <Tooltip>Search</Tooltip>
+        <Button onClick={applyFilters} disabled={loading}>
+          <FaSearch /> Search
         </Button>
       </SearchFilterWrapper>
 
-      {error && <Message error>{error}</Message>}
-      {success && <Message>{success}</Message>}
+      {message.text && (
+        <Message error={message.type === "error"}>{message.text}</Message>
+      )}
 
       {loading ? (
         <LoadingSpinner />
       ) : (
         <>
+          {/* Desktop Table */}
           <TableWrapper>
             <Table>
               <thead>
                 <tr>
                   <Th>User</Th>
-                  <Th>Payment Method</Th>
+                  <Th>Method</Th>
                   <Th>Channel</Th>
                   <Th>Amount</Th>
-                  <Th>Total Amount</Th>
+                  <Th>Total</Th>
                   <Th>Promotion</Th>
                   <Th>Status</Th>
                   <Th>Reason</Th>
@@ -600,60 +511,47 @@ export default function DepositTransaction() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTransactions.map((transaction) => (
-                  <tr key={transaction._id}>
+                {filteredTransactions.map((t) => (
+                  <tr key={t._id}>
                     <Td>
-                      {transaction.userId?.name || 'Unknown'}<br />
-                      ({transaction.userId?.phoneNumber})
-                    </Td>
-                    <Td>{transaction.paymentMethod?.methodName || 'Unknown'}</Td>
-                    <Td>{transaction?.channel || 'Unknown'}</Td>
-                    <Td>৳{transaction.amount}</Td>
-                    <Td>৳{transaction.totalAmount || transaction.amount}</Td>
-                    <Td>
-                      {transaction.promotionId?.title?.length > 4
-                        ? `${transaction.promotionId?.title?.slice(0, 4)}...`
-                        : transaction.promotionId?.title || 'None'}
+                      {t.userId?.username || "N/A"}
+                      <br />({t.userId?.whatsapp})
                     </Td>
                     <Td>
-                      <StatusBadge status={transaction.status}>
-                        {transaction.status}
-                      </StatusBadge>
+                      {t.paymentMethod?.methodNameBD ||
+                        t.paymentMethod?.methodName}
                     </Td>
-                    <Td title={transaction.reason}>
-                      {transaction.reason.length > 5
-                        ? `${transaction.reason.slice(0, 5)}...`
-                        : transaction.reason}
+                    <Td>{t.channel}</Td>
+                    <Td>৳{t.amount}</Td>
+                    <Td>৳{t.totalAmount || t.amount}</Td>
+                    <Td title={t.promotionId?.title}>
+                      {t.promotionId?.title?.slice(0, 15) || "—"}
                     </Td>
                     <Td>
-                      <ActionButtons>
-                        <Button
-                          bgColor="#22c55e"
-                          hoverBgColor="#16a34a"
-                          onClick={() => viewDetails(transaction._id)}
-                        >
-                          <FaEye />
-                          <Tooltip>View</Tooltip>
-                        </Button>
-                        <Button
-                          bgColor="#f59e0b"
-                          hoverBgColor="#d97706"
-                          onClick={() => openModal(transaction)}
-                          disabled={transaction.status === 'completed'}
-                        >
-                          <FaEdit />
-                          <Tooltip>Edit</Tooltip>
-                        </Button>
-                        <Button
-                          bgColor="#ef4444"
-                          hoverBgColor="#dc2626"
-                          onClick={() => handleDelete(transaction._id)}
-                          disabled={transaction.status === 'completed'}
-                        >
-                          <FaTrash />
-                          <Tooltip>Delete</Tooltip>
-                        </Button>
-                      </ActionButtons>
+                      <StatusBadge status={t.status}>{t.status}</StatusBadge>
+                    </Td>
+                    <Td title={t.reason}>{t.reason?.slice(0, 20) || "—"}</Td>
+                    <Td>
+                      <Button
+                        bgColor="#22c55e"
+                        onClick={() => viewDetails(t._id)}
+                      >
+                        <FaEye />
+                      </Button>
+                      <Button
+                        bgColor="#f59e0b"
+                        onClick={() => openModal(t)}
+                        disabled={t.status === "completed"}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        bgColor="#ef4444"
+                        onClick={() => handleDelete(t._id)}
+                        disabled={t.status === "completed"}
+                      >
+                        <FaTrash />
+                      </Button>
                     </Td>
                   </tr>
                 ))}
@@ -661,134 +559,138 @@ export default function DepositTransaction() {
             </Table>
           </TableWrapper>
 
-          {filteredTransactions.map((transaction) => (
-            <MobileCard key={transaction._id}>
+          {/* Mobile View */}
+          {filteredTransactions.map((t) => (
+            <MobileCard key={t._id}>
               <MobileCardHeader>
-                <MobileCardTitle>
-                  {transaction.userId?.name || 'Unknown'}
-                </MobileCardTitle>
-                <StatusBadge status={transaction.status}>
-                  {transaction.status}
-                </StatusBadge>
+                <MobileCardTitle>{t.userId?.name || "Unknown"}</MobileCardTitle>
+                <StatusBadge status={t.status}>{t.status}</StatusBadge>
               </MobileCardHeader>
               <MobileCardContent>
                 <MobileCardRow>
                   <span>Phone:</span>
-                  <span>{transaction.userId?.phoneNumber}</span>
+                  <span>{t.userId?.phoneNumber}</span>
                 </MobileCardRow>
                 <MobileCardRow>
-                  <span>Payment:</span>
-                  <span>{transaction.paymentMethod?.methodName || 'Unknown'}</span>
+                  <span>Method:</span>
+                  <span>{t.paymentMethod?.methodNameBD}</span>
                 </MobileCardRow>
                 <MobileCardRow>
                   <span>Amount:</span>
-                  <span>৳{transaction.amount}</span>
+                  <span>৳{t.amount}</span>
                 </MobileCardRow>
                 <MobileCardRow>
-                  <span>Total Amount:</span>
-                  <span>৳{transaction.totalAmount || transaction.amount}</span>
-                </MobileCardRow>
-                <MobileCardRow>
-                  <span>Promotion:</span>
-                  <span title={transaction.promotionId?.title}>
-                    {transaction.promotionId?.title.length > 4
-                      ? `${transaction.promotionId?.title.slice(0, 4)}...`
-                      : transaction.promotionId?.title || 'None'}
-                  </span>
-                </MobileCardRow>
-                <MobileCardRow>
-                  <span>Reason:</span>
-                  <span title={transaction.reason}>
-                    {transaction.reason.length > 4
-                      ? `${transaction.reason.slice(0, 4)}...`
-                      : transaction.reason}
-                  </span>
+                  <span>Total:</span>
+                  <span>৳{t.totalAmount || t.amount}</span>
                 </MobileCardRow>
               </MobileCardContent>
-              <ActionButtons>
-                <Button
-                  bgColor="#22c55e"
-                  hoverBgColor="#16a34a"
-                  onClick={() => viewDetails(transaction._id)}
-                >
+              <div
+                style={{
+                  marginTop: "0.75rem",
+                  display: "flex",
+                  gap: "0.5rem",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <Button bgColor="#22c55e" onClick={() => viewDetails(t._id)}>
                   <FaEye />
                 </Button>
                 <Button
                   bgColor="#f59e0b"
-                  hoverBgColor="#d97706"
-                  onClick={() => openModal(transaction)}
-                  disabled={transaction.status === 'completed'}
+                  onClick={() => openModal(t)}
+                  disabled={t.status === "completed"}
                 >
                   <FaEdit />
                 </Button>
                 <Button
                   bgColor="#ef4444"
-                  hoverBgColor="#dc2626"
-                  onClick={() => handleDelete(transaction._id)}
-                  disabled={transaction.status === 'completed'}
+                  onClick={() => handleDelete(t._id)}
+                  disabled={t.status === "completed"}
                 >
                   <FaTrash />
                 </Button>
-              </ActionButtons>
+              </div>
             </MobileCard>
           ))}
         </>
       )}
 
+      {/* Edit Modal */}
       {showModal && (
-        <Modal>
-          <ModalContent>
+        <Modal onClick={() => setShowModal(false)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalTitle>Edit Transaction</ModalTitle>
-            {error && <Message error>{error}</Message>}
-            {success && <Message>{success}</Message>}
-            <Form onSubmit={handleSubmit}>
-              <Label>Amount</Label>
-              <Input
-                type="number"
-                name="amount"
-                value={formData.amount}
-                onChange={handleInputChange}
-                required
-                min="200"
-                max="30000"
-                disabled={loading || formData.status === 'completed'}
-              />
-              <Label>Status</Label>
-              <Select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-             //   disabled={loading || formData.status === 'completed'}
+            {message.text && (
+              <Message error={message.type === "error"}>{message.text}</Message>
+            )}
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: "1rem" }}>
+                <label className="block text-sm font-medium mb-1">Amount</label>
+                <Input
+                  type="number"
+                  value={formData.amount}
+                  onChange={(e) =>
+                    setFormData({ ...formData, amount: e.target.value })
+                  }
+                  required
+                  min="1"
+                />
+              </div>
+              <div style={{ marginBottom: "1rem" }}>
+                <label className="block text-sm font-medium mb-1">Status</label>
+                <Select
+                  value={formData.status}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      status: e.target.value,
+                      reason: ["failed", "cancelled"].includes(e.target.value)
+                        ? formData.reason
+                        : "",
+                    })
+                  }
+                >
+                  <option value="pending">Pending</option>
+                  <option value="completed">Completed</option>
+                  <option value="failed">Failed</option>
+                  <option value="cancelled">Cancelled</option>
+                </Select>
+              </div>
+              <div style={{ marginBottom: "1rem" }}>
+                <label className="block text-sm font-medium mb-1">
+                  Reason{" "}
+                  {["failed", "cancelled"].includes(formData.status) && (
+                    <span className="text-red-600">*</span>
+                  )}
+                </label>
+                <Textarea
+                  value={formData.reason}
+                  onChange={(e) =>
+                    setFormData({ ...formData, reason: e.target.value })
+                  }
+                  placeholder={
+                    ["failed", "cancelled"].includes(formData.status)
+                      ? "Required"
+                      : "Optional"
+                  }
+                  required={["failed", "cancelled"].includes(formData.status)}
+                />
+              </div>
+              <div
+                style={{ display: "flex", gap: "0.75rem", marginTop: "1rem" }}
               >
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-                <option value="failed">Failed</option>
-                <option value="cancelled">Cancelled</option>
-              </Select>
-              <Label>Reason {['failed', 'cancelled'].includes(formData.status) && '*'}</Label>
-              <Textarea
-                name="reason"
-                value={formData.reason}
-                onChange={handleInputChange}
-                placeholder="Enter reason for failed or cancelled status"
-                disabled={loading }
-                required={['failed', 'cancelled'].includes(formData.status)}
-              />
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
-                <Button type="submit" disabled={loading }>
-                  Update
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Updating..." : "Update"}
                 </Button>
                 <Button
-                  bgColor="#6b7280"
-                  hoverBgColor="#4b5563"
                   type="button"
+                  bgColor="#6b7280"
                   onClick={() => setShowModal(false)}
-                  disabled={loading}
                 >
                   Cancel
                 </Button>
               </div>
-            </Form>
+            </form>
           </ModalContent>
         </Modal>
       )}
