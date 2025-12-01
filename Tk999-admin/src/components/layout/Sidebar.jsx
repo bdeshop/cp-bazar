@@ -944,13 +944,13 @@ const CustomSidebar = ({ collapsed, toggleSidebar, handleMenuSelect }) => {
             </Link>
             <Link
               style={{ color: "inherit", textDecoration: "inherit" }}
-              to="/promotion"
+              to="/deposit-bonus"
             >
               <MenuItem
                 icon={<FaListAlt size={16} />}
-                onClick={() => onMenuSelect("Add Promotion")}
+                onClick={() => onMenuSelect("Add Deposit Bonus")}
               >
-                Add Promotion
+                Add Deposit Bonus
               </MenuItem>
             </Link>
 

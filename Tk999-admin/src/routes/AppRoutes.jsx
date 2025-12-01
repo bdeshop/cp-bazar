@@ -7,7 +7,6 @@ import CarouselControl from "../pages/CarouselControl";
 import NoticeControl from "../pages/NoticeControl";
 import GameNavControl from "../pages/GameNavControl";
 import GameControl from "../pages/GameControl";
-import Promotion from "../pages/Promotion";
 import AddDepositMethods from "../pages/AddDepositMethods";
 import DepositTransaction from "../pages/DepositTransaction";
 import TransactionDetails from "../pages/TransactionDetails";
@@ -43,6 +42,7 @@ import BalanceTransferController from "../pages/BalanceTransferController";
 import AddWithdrawMethod from "../pages/AddWithdrawMethod";
 import WithdrawRequest from "../pages/WithdrawRequest";
 import WithdrawHistory from "../pages/WithdrawHistory";
+import DepositBonus from "../pages/DepositBonus";
 
 const AppRoutes = () => (
   <Routes>
@@ -54,7 +54,7 @@ const AppRoutes = () => (
     <Route path="/notice-control" element={<NoticeControl />} />
     <Route path="/game-nav-control" element={<GameNavControl />} />
     <Route path="/game-control" element={<GameControl />} />
-    <Route path="/promotion" element={<Promotion />} />
+    <Route path="/deposit-bonus" element={<DepositBonus />} />
     <Route path="/Add-Deposit-Methods" element={<AddDepositMethods />} />
     <Route path="/deposit-transaction" element={<DepositTransaction />} />
     <Route
