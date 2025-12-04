@@ -6,7 +6,8 @@ import "swiper/css/navigation";
 import "swiper/css/grid";
 import { useEffect, useRef, useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { baseURL_For_IMG_UPLOAD } from "@/utils/baseURL";
+// Use fixed CDN/API base for images
+const IMAGE_BASE = "https://apigames.oracleapi.net";
 import Modal from "@/components/home/modal/Modal";
 import { useSelector } from "react-redux";
 import Login from "@/components/shared/login/Login";
@@ -16,7 +17,6 @@ import { AuthContext } from "@/Context/AuthContext";
 const GameCard = ({
   title = "HOT GAMES",
   games = [],
-  parentMenu,
   parentId = "",
 }) => {
   const swiperRef = useRef(null);
@@ -207,11 +207,27 @@ const GameCard = ({
                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-[#00ffaa]/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12" />
               </div>
 
-              <img
-                src={`${baseURL_For_IMG_UPLOAD}s/${game?.image}`}
-                alt={game?.name}
-                className="w-full h-full object-cover rounded-xl transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
-              />
+              {(() => {
+                // Prefer Tk999 project image from apiData.projectImageDocs
+                const docs = (game?.apiData?.projectImageDocs || game?.projectImageDocs || []);
+                const match = docs.find(
+                  (d) => d?.projectName?.title === "Tk999" && d?.image
+                );
+                const imgPath = match?.image
+                  || game?.image
+                  || game?.apiData?.image
+                  || "";
+                const src = imgPath
+                  ? `${IMAGE_BASE}/${imgPath}`
+                  : "";
+                return (
+                  <img
+                    src={src}
+                    alt={game?.apiData?.name || game?.name || "game"}
+                    className="w-full h-full object-cover rounded-xl transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
+                  />
+                );
+              })()}
 
               {game.showHeart && (
                 <Link
@@ -251,11 +267,24 @@ const GameCard = ({
               <RxCross2 size={28} />
             </button>
             <div className="flex items-center gap-4 mb-4">
-              <img
-                src={`${baseURL_For_IMG_UPLOAD}s/${selectedGame?.image}`}
-                alt={selectedGame?.name}
-                className="w-24 h-24 rounded-xl shadow-lg border-2 border-[#00ffaa] -mt-12"
-              />
+              {(() => {
+                const docs = (selectedGame?.apiData?.projectImageDocs || selectedGame?.projectImageDocs || []);
+                const match = docs.find(
+                  (d) => d?.projectName?.title === "Tk999" && d?.image
+                );
+                const imgPath = match?.image
+                  || selectedGame?.image
+                  || selectedGame?.apiData?.image
+                  || "";
+                const src = imgPath ? `${IMAGE_BASE}/${imgPath}` : "";
+                return (
+                  <img
+                    src={src}
+                    alt={selectedGame?.apiData?.name || selectedGame?.name || "game"}
+                    className="w-24 h-24 rounded-xl shadow-lg border-2 border-[#00ffaa] -mt-12"
+                  />
+                );
+              })()}
               <h3 className="text-lg font-bold text-gray-800 truncate">
                 {selectedGame?.apiData?.name || selectedGame?.name}
               </h3>
@@ -294,7 +323,7 @@ const GameCard = ({
       </Modal>
 
       {/* SHINE CSS – Perfectly Synced */}
-      <style jsx>{`
+      <style>{`
         .auto-shine {
           position: relative;
           overflow: hidden;

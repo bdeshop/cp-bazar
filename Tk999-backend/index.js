@@ -166,10 +166,75 @@ app.post("/create-admin", async (req, res) => {
   }
 });
 
+// ✅ Reset admin: delete existing admin by email and create a new one
+app.get("/reset-admin", async (req, res) => {
+  try {
+    const {
+      email = "admin@example.com",
+      name = "Admin User",
+      password = "12345678",
+      phoneNumber = "01234567890",
+      player_id = "ADMIN001",
+    } = req.body || {};
+
+    // Delete existing admin
+    await User.deleteOne({ email, role: "admin" });
+
+    // Create new admin
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(password, salt);
+    const admin = new User({
+      name,
+      email,
+      password: hashed,
+      phoneNumber,
+      player_id,
+      role: "admin",
+      isVerified: true,
+      emailVerified: true,
+      phoneNumberVerified: true,
+      status: "active",
+    });
+    await admin.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Admin reset: old admin deleted, new admin created",
+      admin: { _id: admin._id, email: admin.email, player_id: admin.player_id },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // MongoDB connection and server start
 connectDb(config.DB_CONN)
   .then(() => {
     console.log("Database connected");
+    // On server start: ensure admin password is set to hash(12345678)
+    (async () => {
+      try {
+        const adminEmail = "admin@example.com";
+        const plain = "12345678";
+        const admin = await User.findOne({ email: adminEmail });
+        if (admin) {
+          const isSame = await bcrypt.compare(plain, admin.password);
+          if (!isSame) {
+            const salt = await bcrypt.genSalt(10);
+            const hashed = await bcrypt.hash(plain, salt);
+            admin.password = hashed;
+            await admin.save();
+            console.log("Admin password reset to predefined hash.");
+          } else {
+            console.log("Admin password already matches predefined value.");
+          }
+        } else {
+          console.log("Admin user not found; skipping password reset.");
+        }
+      } catch (err) {
+        console.error("Failed to reset admin password:", err.message);
+      }
+    })();
     app.listen(config.PORT, () => {
       console.log(`Server is running at ${config.PORT}`);
     });

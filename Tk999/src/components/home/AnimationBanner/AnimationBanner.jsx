@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { baseURL, baseURL_For_IMG_UPLOAD } from "@/utils/baseURL";
+// Use fixed CDN/API base for game images
+const IMAGE_BASE = "https://apigames.oracleapi.net";
 import { Link } from "react-router-dom";
 import Modal from "@/components/home/modal/Modal";
 import Login from "@/components/shared/login/Login";
@@ -9,7 +11,7 @@ import { useSelector } from "react-redux";
 export default function AnimationBanner({ data }) {
   const [gamesData, setGamesData] = useState([]);
   const [counter, setCounter] = useState(123456789); // Initial number
-  const [animationPhase, setAnimationPhase] = useState("fast"); // Animation state: fast, slow
+  // Animation state previously used for styling; no longer needed
   const reelRefs = useRef([]); // Refs for each reel
   const [bannerData, setBannerData] = useState({
     titleBD: "জ্যাকপট",
@@ -75,7 +77,6 @@ export default function AnimationBanner({ data }) {
 
     const animateReels = () => {
       // Fast spin for 2 seconds
-      setAnimationPhase("fast");
       reelRefs.current.forEach((reel, index) => {
         if (reel) {
           reel.style.animation = `scroll${
@@ -86,7 +87,6 @@ export default function AnimationBanner({ data }) {
 
       // Slow down and stop after 2 seconds
       const slowTimeout = setTimeout(() => {
-        setAnimationPhase("slow");
         const digits = counter.toString().padStart(9, "0").split("");
         reelRefs.current.forEach((reel, index) => {
           if (reel) {
@@ -101,7 +101,6 @@ export default function AnimationBanner({ data }) {
         // Update counter with a new random number and restart after stopping
         setTimeout(() => {
           setCounter(generateRandomNumber());
-          setAnimationPhase("fast");
           animateReels(); // Restart cycle
         }, 5000); // Slow down duration
       }, 1000); // Fast spin duration
@@ -192,7 +191,7 @@ export default function AnimationBanner({ data }) {
         <div className="col-span-12 flex justify-center items-center h-full relative overflow-hidden">
           <div className="odometer flex justify-center items-center gap-[8px] p-[10px_14px] rounded-[14px] bg-[#0b1222] shadow-[0_0_25px_rgba(242,15,91,0.25),0_0_40px_rgba(255,180,0,0.15)]">
             {formatCounter(counter).map((text, index) => {
-              const isDigit = text.match(/[0-9]/);
+              // Determine digit index for reel mapping
               const digitIndex = Math.floor((index - 1) / 2); // Map to digit position
               return (
                 <span key={index} className="inline-flex items-center">
@@ -283,11 +282,24 @@ export default function AnimationBanner({ data }) {
                 key={`${game?.name}-${index}`}
                 className="relative group overflow-hidden rounded-lg shadow-md w-[130px] h-[176px] flex-shrink-0 mx-1"
               >
-                <img
-                  src={`${baseURL_For_IMG_UPLOAD}s/${game?.image}`}
-                  alt={game?.name}
-                  className="w-full h-full object-cover rounded-lg transition-transform duration-500 group-hover:scale-110 group-hover:blur-[2px]"
-                />
+                {(() => {
+                  const docs = (game?.apiData?.projectImageDocs || game?.projectImageDocs || []);
+                  const match = docs.find(
+                    (d) => d?.projectName?.title === "Tk999" && d?.image
+                  );
+                  const imgPath = match?.image
+                    || game?.image
+                    || game?.apiData?.image
+                    || "";
+                  const src = imgPath ? `${IMAGE_BASE}/${imgPath}` : "";
+                  return (
+                    <img
+                      src={src}
+                      alt={game?.apiData?.name || game?.name || "game"}
+                      className="w-full h-full object-cover rounded-lg transition-transform duration-500 group-hover:scale-110 group-hover:blur-[2px]"
+                    />
+                  );
+                })()}
                 {game.showHeart && (
                   <Link to={game.heartLink || "#"}>
                     <div className="absolute top-1 right-1 bg-[#ffffff45] bg-opacity-80 rounded-full p-0.5">
@@ -336,7 +348,7 @@ export default function AnimationBanner({ data }) {
       </div>
 
       {/* Inline CSS for Slider, Counter Animation, and Responsive Design */}
-      <style jsx>{`
+      <style>{`
         :root {
           --digit-size: clamp(34px, 6vw, 64px);
           --gap: 8px;

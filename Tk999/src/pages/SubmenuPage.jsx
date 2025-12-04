@@ -1,9 +1,11 @@
 import MarqueeSlider from "@/components/home/Marque/MarqueeSlider";
 import { fetchHomeGameMenu } from "@/features/home-game-menu/GameHomeMenuSliceAndThunks";
 import { baseURL_For_IMG_UPLOAD } from "@/utils/baseURL";
+// Use fixed CDN/API base for game images
+const IMAGE_BASE = "https://apigames.oracleapi.net";
 import { useEffect, useRef, useState, useContext } from "react";
 import { BsFire } from "react-icons/bs";
-import { FaUserFriends } from "react-icons/fa";
+// import { FaUserFriends } from "react-icons/fa"; // unused
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
@@ -154,16 +156,7 @@ const SubmenuPage = () => {
   // "All" Button Text Based on Language
   const allButtonLabel = language === "bn" ? "সব" : "All";
 
-  const hotGameItem = {
-    id: "1",
-    label: allButtonLabel,
-    icon: (
-      <span style={{ fontSize: "10px", fontWeight: "bold" }}>
-        {allButtonLabel}
-      </span>
-    ),
-    path: "/",
-  };
+  // Hot item will be built inside the effect
 
   useEffect(() => {
     const dynamicMenuItems =
@@ -178,8 +171,20 @@ const SubmenuPage = () => {
         path: `/menu/${option?._id || ""}`,
       })) || [];
 
-    setSubOption([hotGameItem, ...dynamicMenuItems]);
-  }, [category, language]); // ← language dependency added
+    // Hot item depends on language; keep re-computed here to avoid stale value
+    const localHotItem = {
+      id: "1",
+      label: allButtonLabel,
+      icon: (
+        <span style={{ fontSize: "10px", fontWeight: "bold" }}>
+          {allButtonLabel}
+        </span>
+      ),
+      path: "/",
+    };
+
+    setSubOption([localHotItem, ...dynamicMenuItems]);
+  }, [category, language, allButtonLabel]);
 
   useEffect(() => {
     if (selectedItem.id === "1") {
@@ -281,11 +286,25 @@ const SubmenuPage = () => {
               key={index}
               className="relative group overflow-hidden rounded-lg xl:rounded-xl shadow-md"
             >
-              <img
-                src={game?.image && `${baseURL_For_IMG_UPLOAD}s/${game.image}`}
-                alt={game?.name || "Game"}
-                className="w-full h-auto rounded-lg transition-transform duration-500 group-hover:scale-110 group-hover:blur-[2px]"
-              />
+              {(() => {
+                // Prefer Tk999 project image from apiData.projectImageDocs
+                const docs = (game?.apiData?.projectImageDocs || game?.projectImageDocs || []);
+                const match = docs.find(
+                  (d) => d?.projectName?.title === "Tk999" && d?.image
+                );
+                const imgPath = match?.image
+                  || game?.image
+                  || game?.apiData?.image
+                  || "";
+                const src = imgPath ? `${IMAGE_BASE}/${imgPath}` : "";
+                return (
+                  <img
+                    src={src}
+                    alt={game?.apiData?.name || game?.name || "Game"}
+                    className="w-full h-auto rounded-lg transition-transform duration-500 group-hover:scale-110 group-hover:blur-[2px]"
+                  />
+                );
+              })()}
 
               {game?.showHeart && (
                 <Link to={game?.heartLink || "#"}>

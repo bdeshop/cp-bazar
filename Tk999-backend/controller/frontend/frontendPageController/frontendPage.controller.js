@@ -2748,13 +2748,13 @@ exports.getGameById = async (req, res) => {
 
 exports.createGame = async (req, res) => {
   try {
-    const { gameAPIID, image, subOptions, isHotGame } = req.body;
+    const { gameAPIID, image = "", subOptions, isHotGame } = req.body;
 
-    if (!image) {
-      return sendResponse(res, 400, false, "Image is required");
+    if (!gameAPIID || !subOptions) {
+      return sendResponse(res, 400, false, "gameAPIID and subOptions are required");
     }
 
-    // Check if a game with this gameAPIID already exists for the given subOption
+    // Prevent duplicates per category
     const existingGame = await GameModel.findOne({ gameAPIID, subOptions });
     if (existingGame) {
       return sendResponse(
@@ -2780,9 +2780,14 @@ exports.createGame = async (req, res) => {
 exports.updateGame = async (req, res) => {
   try {
     const { image, subOptions, isHotGame } = req.body;
+    const update = {};
+    if (image !== undefined) update.image = image;
+    if (subOptions !== undefined) update.subOptions = subOptions;
+    if (typeof isHotGame === "boolean") update.isHotGame = isHotGame;
+
     const game = await GameModel.findByIdAndUpdate(
       req.params.id,
-      { image, subOptions, isHotGame },
+      { $set: update },
       { new: true }
     );
     if (!game) return sendResponse(res, 404, false, "Game not found");
