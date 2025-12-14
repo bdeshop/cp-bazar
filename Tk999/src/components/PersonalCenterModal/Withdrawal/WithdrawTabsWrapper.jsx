@@ -65,7 +65,7 @@ const WithdrawTabsWrapper = () => {
     <div className="flex flex-col overflow-y-auto max-h-[99vh] custom-scrollbar-hidden lg:flex-row gap-6 px-2 lg:px-6 pb-10 lg:pb-0">
       {/* Left Tabs */}
       <div className="lg:w-1/4 grid grid-cols-4 lg:flex lg:flex-col gap-2 py-6">
-        {methods.map((method) => (
+        {methods.map((method, idx) => (
           <div
             key={method._id}
             className={`relative flex flex-col items-center lg:items-start lg:flex-row p-2 ${
@@ -95,6 +95,7 @@ const WithdrawTabsWrapper = () => {
             )}
           </div>
         ))}
+        {/* Opay section link removed as requested */}
       </div>
 
       {/* Right Content */}

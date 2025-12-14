@@ -18,6 +18,7 @@ const user_model = require("../../../model/user.model");
 const ThemeModel = require("../../../model/ThemeModel");
 const AnimationBanner = require("../../../model/AnimationBanner.model");
 const User = require("../../../model/user.model");
+const Admin = require("../../../model/admin.model");
 const imageRegistrationSchema = require("../../../model/imageRegistrationSchema");
 const models = { GameNavBar, MenuOption, SubOption };
 const qs = require("qs");
@@ -461,17 +462,19 @@ exports.getGameById = async (req, res) => {
 
 exports.createGame = async (req, res) => {
   try {
-    const { gameAPIID, image, subOptions, isHotGame } = req.body;
+    const { gameAPIID, image, subOptions, isHotGame, isNewGame, isLobbyGame } = req.body;
 
-    if (!image) {
-      return res.status(400).json({ error: "Image is required" });
+    if (!gameAPIID || !subOptions) {
+      return res.status(400).json({ error: "gameAPIID and subOptions are required" });
     }
 
     const game = await GameModel.create({
       gameAPIID,
-      image,
+      image: image || '',
       subOptions,
-      isHotGame,
+      isHotGame: !!isHotGame,
+      isNewGame: !!isNewGame,
+      isLobbyGame: !!isLobbyGame,
     });
     res.status(201).json(game);
   } catch (err) {
@@ -481,13 +484,22 @@ exports.createGame = async (req, res) => {
 
 exports.updateGame = async (req, res) => {
   try {
-    const { gameAPIID, image, subOptions, isHotGame } = req.body;
+    const { gameAPIID, image, subOptions, isHotGame, isNewGame, isLobbyGame } = req.body;
+    const update = {};
+    if (typeof gameAPIID !== 'undefined') update.gameAPIID = gameAPIID;
+    if (typeof image !== 'undefined') update.image = image;
+    if (typeof subOptions !== 'undefined') update.subOptions = subOptions;
+    if (typeof isHotGame !== 'undefined') update.isHotGame = isHotGame;
+    if (typeof isNewGame !== 'undefined') update.isNewGame = isNewGame;
+    if (typeof isLobbyGame !== 'undefined') update.isLobbyGame = isLobbyGame;
+    console.log('updateGame payload:', req.params.id, update);
     const game = await GameModel.findByIdAndUpdate(
       req.params.id,
-      { gameAPIID, image, subOptions, isHotGame },
+      { $set: update },
       { new: true }
     );
     if (!game) return res.status(404).json({ error: "Game not found" });
+    console.log('updateGame result:', game);
     res.status(200).json(game);
   } catch (err) {
     handleError(res, err, 400);
@@ -658,6 +670,15 @@ exports.playGameController = async (req, res) => {
       money: money,
       gameid: req.body.gameID,
     };
+
+      // api.tk999.oracelsoft.com
+    // const postData = {
+    //   home_url: "https://api.tk999.oracelsoft.com",
+    //   token: "5f4e59f09dc1a061cdb5185ceef6e75b",
+    //   username: username + "45", // চাইলে random করতে পারো
+    //   money: money,
+    //   gameid: gameID,
+    // };
 
     // x-dstgame-key
     // 'x-dstgame-key: yourlicensekey'
@@ -1189,6 +1210,7 @@ exports.createPaymentTransaction = async (req, res) => {
   try {
     const {
       userId,
+      userIdentifier,
       paymentMethodId,
       channel,
       amount,
@@ -1209,22 +1231,43 @@ exports.createPaymentTransaction = async (req, res) => {
       );
     }
 
-    // Validate ObjectId formats
-    if (!isValidObjectId(userId) || !isValidObjectId(paymentMethodId)) {
-      return sendResponse(
-        res,
-        400,
-        false,
-        "Invalid user ID or payment method ID",
-        null
-      );
+    // Validate paymentMethodId format
+    if (!isValidObjectId(paymentMethodId)) {
+      return sendResponse(res, 400, false, "Invalid payment method ID", null);
     }
     if (promotionId && !isValidObjectId(promotionId)) {
       return sendResponse(res, 400, false, "Invalid promotion ID", null);
     }
 
-    // Validate user exists
-    const user = await User.findById(userId);
+    // Validate user exists (supports cross-db identifiers)
+    let user = null;
+    if (userId && isValidObjectId(userId)) {
+      user = await User.findById(userId);
+    }
+    if (!user && userIdentifier) {
+      user = await User.findOne({
+        $or: [
+          { username: userIdentifier },
+          { player_id: userIdentifier },
+          { email: userIdentifier },
+          { phoneNumber: userIdentifier },
+        ],
+      });
+    }
+    // Fallback: try Admin collection in affiliate DB
+    if (!user && userIdentifier) {
+      const admin = await Admin.findOne({
+        $or: [
+          { username: userIdentifier },
+          { player_id: userIdentifier },
+          { email: userIdentifier },
+          { phoneNumber: userIdentifier },
+        ],
+      });
+      if (admin) {
+        user = admin;
+      }
+    }
     if (!user) {
       return sendResponse(res, 400, false, "User not found", null);
     }
@@ -1393,7 +1436,7 @@ exports.createPaymentTransaction = async (req, res) => {
 
     // Create transaction
     const transaction = await PaymentTransaction.create({
-      userId,
+      userId: user._id,
       paymentMethod: {
         methodName: paymentMethod.methodName,
         agentWalletNumber: paymentMethod.agentWalletNumber,

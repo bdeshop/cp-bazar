@@ -13,11 +13,13 @@ const { uploadImage } = require("./controller/ImageUpload.Controller");
 const adminHomeControlRouter = require("./router/admin/admin.homeControll.router");
 const frontendHomeControlRouter = require("./router/frontend/frontend.controll.router");
 const adminHomeFooterControlRouter = require("./router/admin/admin.homeFooterControll.router");
+const adminOpayRouter = require("./router/admin/admin.opay.router");
 const { deleteImage } = require("./controller/ImageDelete.Controller");
 const User = require("./model/user.model");
 const qs = require("qs");
 const bcrypt = require("bcrypt");
 const { default: axios } = require("axios");
+const fs = require("fs").promises;
 
 // const { uploadImage } = require("./controller/ImageUpload.Controller");
 
@@ -37,6 +39,20 @@ app.use(
       "http://admin.melbet99.com",
       "http://localhost:5173",
       "https://tk999.egamings.org",
+      "https://tk999.oracelsoft.com",
+      "https://affiliate.tk999.oracelsoft.com",
+      "https://admin.tk999.oracelsoft.com",
+      "https://affiliatecp666.live",
+      "http://affiliatecp666.live",
+      "https://cp666.live",
+      "http://cp666.live",
+      "https://admin.cp666.live",
+      "http://admin.cp666.live",
+      "https://cp666.live",
+      "http://cp666.live",
+      "https://cp666.live",
+      "http://cp666.live",
+      "*",
     ], // Allow requests from frontend
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Allow specified methods
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -57,6 +73,17 @@ app.post("/upload", uploadImage); // Matches frontend fetch URL
 
 // Image delete route
 app.post("/delete-image", deleteImage);
+// Loader status endpoint (reads config/loader.json)
+app.get("/loader", async (req, res) => {
+  try {
+    const filePath = path.join(__dirname, "config", "loader.json");
+    const content = await fs.readFile(filePath, "utf-8");
+    const json = JSON.parse(content || "{}");
+    res.json({ loader: !!json.loader });
+  } catch (err) {
+    res.json({ loader: false });
+  }
+});
 
 // * admin routes
 app.use("/api/v1/admin", [
@@ -64,6 +91,7 @@ app.use("/api/v1/admin", [
   adminUserRouter,
   adminHomeControlRouter,
   adminHomeFooterControlRouter,
+  adminOpayRouter,
 ]);
 
 // * view customer user routers
@@ -93,16 +121,28 @@ app.post("/playgame", async (req, res) => {
   try {
     const { gameID, username, money } = req.body;
 
-    if (!gameID || !username || !money) {
-      return res.status(400).json({
-        success: false,
-        message: "gameID is required in request body",
-      });
-    }
+   
+    console.log("PlayGame Request Body:", req.body);
 
+    // if (!gameID || !username || !money) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "gameID is required in request body", gameID, username, money,
+    //   });
+    // }
+
+    // const postData = {
+    //   home_url: "https://cp666.live",
+    //   token: "e9a26dd9196e51bb18a44016a9ca1d73",
+    //   username: username + "45", // চাইলে random করতে পারো
+    //   money: money,
+    //   gameid: gameID,
+    // };
+
+    // api.tk999.oracelsoft.com
     const postData = {
-      home_url: "https://cp666.live",
-      token: "e9a26dd9196e51bb18a44016a9ca1d73",
+      home_url: "https://api.tk999.oracelsoft.com",
+      token: "5f4e59f09dc1a061cdb5185ceef6e75b",
       username: username + "45", // চাইলে random করতে পারো
       money: money,
       gameid: gameID,

@@ -35,4 +35,8 @@ const deleteImage = async (req, res) => {
   }
 };
 
+
+
+
+
 module.exports = { deleteImage };

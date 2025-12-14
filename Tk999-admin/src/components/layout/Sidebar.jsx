@@ -31,7 +31,6 @@ import {
   FaImage,
   FaCopyright,
   FaBullhorn,
-  FaMoneyCheckAlt,
   FaSlidersH,
   FaEnvelope,
   FaCog,
@@ -930,7 +929,35 @@ const CustomSidebar = ({ collapsed, toggleSidebar, handleMenuSelect }) => {
             </Link>
           </SubMenu>
 
-          <SubMenu label="Deposit" icon={<FaMoneyBillWave size={16} />}>
+          {/* Main menu: Opay Setting with submenus */}
+          <SubMenu label="Opay Setting" icon={<FaCog size={16} />}> 
+            <Link
+              style={{ color: "inherit", textDecoration: "inherit" }}
+              to="/opay/api"
+            >
+              <MenuItem onClick={() => onMenuSelect("Opay Api")}>
+                Opay Api
+              </MenuItem>
+            </Link>
+            <Link
+              style={{ color: "inherit", textDecoration: "inherit" }}
+              to="/opay/device-monitoring"
+            >
+              <MenuItem onClick={() => onMenuSelect("Device Monitoring")}>
+                Device Monitoring
+              </MenuItem>
+            </Link>
+            <Link
+              style={{ color: "inherit", textDecoration: "inherit" }}
+              to="/opay/deposit"
+            >
+              <MenuItem onClick={() => onMenuSelect("Opay Deposit")}>
+                Opay Deposit
+              </MenuItem>
+            </Link>
+          </SubMenu>
+
+          <SubMenu label="Deposit" icon={<FaMoneyBillWave size={16} />}> 
             <Link
               style={{ color: "inherit", textDecoration: "inherit" }}
               to="/Add-Deposit-Methods"
@@ -942,6 +969,7 @@ const CustomSidebar = ({ collapsed, toggleSidebar, handleMenuSelect }) => {
                 Add Deposit Method
               </MenuItem>
             </Link>
+            {/* Opay Setting moved to main menu above */}
             <Link
               style={{ color: "inherit", textDecoration: "inherit" }}
               to="/deposit-bonus"

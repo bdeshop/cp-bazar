@@ -1,14 +1,16 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { AuthContext } from "@/context/AuthContext"; // তোমার AuthContext
+// import { AuthContext } from "@/context/AuthContext"; // তোমার AuthContext
 import { baseURL, baseURL_For_IMG_UPLOAD } from "@/utils/baseURL";
 import CommonContent from "./CommonContent";
 import checkImage from "../../../assets/check.8cbcb507.svg";
 import { FaExclamationTriangle, FaRegFileAlt } from "react-icons/fa";
+import { io } from "socket.io-client";
 import { RiCustomerService2Line } from "react-icons/ri";
+// OpayDevicesPanel hidden from user view (no import needed)
 
 const TabsWrapper = ({ language }) => {
-  const { userId } = useContext(AuthContext); // যদি লাগে
+  // const { userId } = useContext(AuthContext); // যদি লাগে
 
   const [depositPaymentMethods, setDepositPaymentMethods] = useState([]);
   const [promotions, setPromotions] = useState([]);
@@ -19,6 +21,9 @@ const TabsWrapper = ({ language }) => {
   const [selectedProcessTab, setSelectedProcessTab] = useState(null);
   const [selectedPromotion, setSelectedPromotion] = useState(null);
   const [selectedAmount, setSelectedAmount] = useState(100);
+  const [opayOnlineCount, setOpayOnlineCount] = useState(0);
+  const [viewerApiKey, setViewerApiKey] = useState(null);
+  const [opayEnabled, setOpayEnabled] = useState(false);
 
 
   // Fetch Deposit Methods + Promotions
@@ -39,10 +44,13 @@ const TabsWrapper = ({ language }) => {
         setDepositPaymentMethods(methods);
         setPromotions(promos);
 
-        // Auto select first method
+        // Auto select first method; prefer non-Opay channel to avoid disabled default
         if (methods.length > 0) {
-          setSelectedTab(methods[0]._id);
-          setSelectedProcessTab(methods[0].gateway?.[0] || null);
+          const first = methods[0];
+          setSelectedTab(first._id);
+          const initialGateways = Array.isArray(first.gateway) ? first.gateway : [];
+          const nonOpay = initialGateways.filter((g) => String(g).toLowerCase() !== "opay");
+          setSelectedProcessTab(nonOpay[0] || initialGateways[0] || null);
         }
       } catch (err) {
         console.error("Failed to fetch deposit data:", err);
@@ -57,6 +65,44 @@ const TabsWrapper = ({ language }) => {
 
     fetchData();
   }, []);
+
+  // Fetch viewer API key + active flag from backend (stored in DB)
+  useEffect(() => {
+    const fetchViewerKey = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_API}api/v1/frontend/opay/viewer-key`);
+        const key = res?.data?.data?.viewerApiKey || null;
+        const active = !!res?.data?.data?.active;
+        setViewerApiKey(key);
+        setOpayEnabled(active && !!key);
+      } catch (e) {
+        console.error("Failed to fetch viewer API key:", e?.response?.data || e.message);
+        setViewerApiKey(null);
+        setOpayEnabled(false);
+      }
+    };
+    fetchViewerKey();
+  }, []);
+
+  // Socket: connect with fetched viewer API key to count active devices
+  useEffect(() => {
+    const SOCKET_URL = import.meta.env.VITE_SOCKET_IO_URL;
+    if (!SOCKET_URL || !viewerApiKey) return;
+    if (!opayEnabled) return;
+    const s = io(SOCKET_URL, { transports: ["websocket"] });
+    s.on("connect", () => {
+      s.emit("viewer:registerApiKey", { apiKey: viewerApiKey });
+    });
+    s.on("viewer:devices", (list) => {
+      if (Array.isArray(list)) {
+        setOpayOnlineCount(list.filter((d) => d.active).length);
+      }
+    });
+    s.on("viewer:device", () => {
+      // Optional: handle individual device updates if needed later
+    });
+    return () => { s.disconnect(); };
+  }, [viewerApiKey, opayEnabled]);
 
   const handleProcessTabChange = (processTab) => {
     setSelectedProcessTab(processTab);
@@ -73,7 +119,7 @@ const TabsWrapper = ({ language }) => {
       promo.payment_methods?.includes(method._id.toString())
     );
 
-    const processTabs = method.gateway?.map((gateway) => {
+    let processTabs = method.gateway?.map((gateway) => {
       const gatewayPromotions = methodPromotions
         .flatMap((promo) => {
           if (!promo.promotion_bonuses) return [];
@@ -100,6 +146,13 @@ const TabsWrapper = ({ language }) => {
 
       return { name: gateway, promotions: gatewayPromotions };
     }) || [];
+    // Hide Opay when disabled; ensure Opay exists only when enabled
+    const hasOpay = processTabs.some((t) => String(t.name).toLowerCase() === "opay");
+    if (!opayEnabled) {
+      processTabs = processTabs.filter((t) => String(t.name).toLowerCase() !== "opay");
+    } else if (!hasOpay) {
+      processTabs = [...processTabs, { name: "Opay", promotions: [] }];
+    }
 
     acc[method._id] = {
       label: language === "bn" ? method.methodNameBD : method.methodName,
@@ -163,7 +216,10 @@ const TabsWrapper = ({ language }) => {
             }`}
             onClick={() => {
               setSelectedTab(method._id);
-              setSelectedProcessTab(method.gateway?.[0] || null);
+              const availableTabs = (method.gateway || []).filter(
+                (g) => !(String(g).toLowerCase() === "opay" && !opayEnabled)
+              );
+              setSelectedProcessTab(availableTabs[0] || null);
               setSelectedPromotion(null);
             }}
           >
@@ -180,6 +236,7 @@ const TabsWrapper = ({ language }) => {
             )}
           </div>
         ))}
+        {/* Opay section link removed as requested */}
       </div>
 
       {/* Right Content */}
@@ -240,21 +297,49 @@ const TabsWrapper = ({ language }) => {
         </div>
 
         {/* Channel Tabs */}
-        <div className="flex flex-wrap gap-3 mb-8">
-          {tabsData[selectedTab]?.processTabs.map((tab) => (
-            <button
-              key={tab.name}
-              onClick={() => handleProcessTabChange(tab.name)}
-              className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                selectedProcessTab === tab.name
-                  ? "bg-red-100 text-red-700 border-2 border-red-600"
-                  : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
-              }`}
-            >
-              {tab.name}
-            </button>
-          ))}
+        {/* Local styles for Opay shimmer */}
+        <style>{`
+          @keyframes opay-glow {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 300% 0%; }
+          }
+          .opay-shimmer {
+            background: linear-gradient(90deg, #fef08a, #facc15, #f59e0b, #facc15, #fef08a);
+            background-size: 300% 100%;
+            border: 2px solid #f59e0b;
+            color: #713f12;
+            box-shadow: 0 0 10px rgba(245,158,11,0.45);
+            animation: opay-glow 3s linear infinite;
+          }
+          .opay-shimmer:hover { filter: brightness(1.05); }
+          .opay-shimmer.selected { box-shadow: 0 0 20px rgba(234,179,8,0.75), 0 0 40px rgba(234,179,8,0.35); }
+        `}</style>
+
+        <div className="flex flex-wrap gap-3 mb-4">
+          {tabsData[selectedTab]?.processTabs.map((tab) => {
+            const isSelected = selectedProcessTab === tab.name;
+            const isOpay = String(tab.name).toLowerCase() === "opay";
+            const base = "px-6 py-3 rounded-lg font-medium transition-all";
+            const cls = isOpay
+              ? `${base} opay-shimmer ${isSelected ? "selected" : ""}`
+              : `${base} ${isSelected ? "bg-red-100 text-red-700 border-2 border-red-600" : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"}`;
+            return (
+              <button
+                key={tab.name}
+                onClick={() => handleProcessTabChange(tab.name)}
+                className={cls}
+              >
+                {isOpay ? (
+                  <span className="font-bold">{tab.name}</span>
+                ) : (
+                  tab.name
+                )}
+              </button>
+            );
+          })}
         </div>
+
+        {/* Opay devices panel hidden from user */}
 
         {/* Common Content */}
         <CommonContent
@@ -271,6 +356,8 @@ const TabsWrapper = ({ language }) => {
           maxAmount={tabsData[selectedTab]?.maxAmount || 25000}
           selectedAmount={selectedAmount}
           setSelectedAmount={setSelectedAmount}
+          viewerApiKey={viewerApiKey}
+          opayOnlineCount={opayOnlineCount}
         />
       </div>
     </div>

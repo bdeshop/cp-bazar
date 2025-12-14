@@ -124,6 +124,12 @@ const GameControl = () => {
     }));
   };
 
+  // Removed New Tab toggle
+
+  // Lobby selection handled via explicit buttons; toggle helper removed
+
+  // Removed Lobby Game select/unselect
+
   const handleSaveApiGame = async (gameAPIID) => {
     const gameState = apiGamesState[gameAPIID] || {};
     if (!selectedSubmenu) {
@@ -185,6 +191,8 @@ const GameControl = () => {
     },
     [dispatch]
   );
+
+  // Removed saved New Tab toggle handler
 
   // Find saved game data for a provider game
   const getSavedGameData = (gameAPIID) => {
@@ -260,6 +268,7 @@ const GameControl = () => {
           const isHotGame = isSaved
             ? displayGame.isHotGame
             : apiGamesState[game._id]?.isHotGame || false;
+          // New Tab and Lobby Game removed
 
           return (
             <div key={game._id} className="col-md-6 col-lg-3">
@@ -270,6 +279,7 @@ const GameControl = () => {
                   <p className="card-text">
                     Hot Game: {isHotGame ? "Yes" : "No"}
                   </p>
+                  {/* New Tab and Lobby Game removed */}
                   {!isSaved && (
                     <>
                       <FormGroup className="form-check">
@@ -287,6 +297,9 @@ const GameControl = () => {
                           Hot Game
                         </label>
                       </FormGroup>
+                      {/* Lobby Game selection removed */}
+                      {/* New Tab toggle removed */}
+                      {/* Saved Lobby Game buttons removed */}
                       <button
                         className="btn btn-primary w-100"
                         onClick={() => handleSaveApiGame(game._id)}
@@ -313,6 +326,7 @@ const GameControl = () => {
                           Hot Game
                         </label>
                       </FormGroup>
+                      {/* Saved New Tab toggle removed */}
                       <div className="d-flex gap-2">
                         <button
                           className="btn btn-danger"

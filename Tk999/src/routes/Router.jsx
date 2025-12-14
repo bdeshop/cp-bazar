@@ -8,6 +8,8 @@ import SubmenuPage from "@/pages/SubmenuPage";
 import PlayGame from "@/pages/PlayGame";
 import DepositDetails from "@/components/PersonalCenterModal/Deposit/DepositDetails";
 import PromotionDetails from "@/components/home/Promotions/PromotionDetails";
+import OpayDeposit from "@/components/PersonalCenterModal/Deposit/OpayDeposit";
+import OpayWithdraw from "@/components/PersonalCenterModal/Withdrawal/OpayWithdraw";
 
 const router = createBrowserRouter([
   {
@@ -29,6 +31,14 @@ const router = createBrowserRouter([
   {
     path: "/deposit-details",
     element: <DepositDetails />,
+  },
+  {
+    path: "/deposit/opay",
+    element: <OpayDeposit />,
+  },
+  {
+    path: "/withdraw/opay",
+    element: <OpayWithdraw />,
   },
 ]);
 

@@ -44,8 +44,16 @@ const {
 } = require("../../controller/frontend/frontendFooterController/frontendFooterController");
 
 const frontendHomeControlRouter = express.Router();
+const { getViewerApiKey } = require("../../controller/frontend/opay.controller");
+const { opayVerificationCallback } = require("../../controller/frontend/opay.webhook.controller");
 
 frontendHomeControlRouter.get("/homeCarousel", getAllCarouselImages);
+
+// Opay viewer key for client
+frontendHomeControlRouter.get("/opay/viewer-key", getViewerApiKey);
+
+// OraclePay webhook callback (public)
+frontendHomeControlRouter.post("/opay/callback", opayVerificationCallback);
 
 frontendHomeControlRouter.get("/notice", getAllNotices);
 

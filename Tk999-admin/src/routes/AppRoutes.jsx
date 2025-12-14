@@ -43,6 +43,10 @@ import AddWithdrawMethod from "../pages/AddWithdrawMethod";
 import WithdrawRequest from "../pages/WithdrawRequest";
 import WithdrawHistory from "../pages/WithdrawHistory";
 import DepositBonus from "../pages/DepositBonus";
+import OpaySetting from "../pages/OpaySetting";
+import OpayApi from "../pages/OpayApi";
+import OpayDeviceMonitoring from "../pages/OpayDeviceMonitoring";
+import OpayDepositAdmin from "../pages/OpayDepositAdmin";
 
 const AppRoutes = () => (
   <Routes>
@@ -119,6 +123,10 @@ const AppRoutes = () => (
     <Route path="/add-withdraw-method" element={<AddWithdrawMethod />} />
     <Route path="/withdraw-request" element={<WithdrawRequest />} />
     <Route path="/withdraw-history" element={<WithdrawHistory />} />
+    <Route path="/opay-setting" element={<OpaySetting />} />
+    <Route path="/opay/api" element={<OpayApi />} />
+    <Route path="/opay/device-monitoring" element={<OpayDeviceMonitoring />} />
+    <Route path="/opay/deposit" element={<OpayDepositAdmin />} />
   </Routes>
 );
 

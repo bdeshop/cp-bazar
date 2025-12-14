@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const config = require("../config/config");
 const validator = require("validator");
 
 const GameHistorySchema = new mongoose.Schema({
@@ -130,5 +131,7 @@ UserSchema.post("save", function (error, doc, next) {
   }
 });
 
-const User = mongoose.model("User", UserSchema);
+// Use a dedicated connection for user data (affiliate cluster)
+const usersConn = mongoose.createConnection(config.USERS_DB_CONN || config.DB_CONN);
+const User = usersConn.model("User", UserSchema);
 module.exports = User;
