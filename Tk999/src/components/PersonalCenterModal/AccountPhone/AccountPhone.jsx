@@ -136,17 +136,17 @@ const AccountPhone = () => {
                 className="w-16 h-16 rounded-full"
               />
               <div className="flex flex-col lg:leading-normal leading-tight">
-                <div className="flex gap-1 items-center rounded-full p-1 bg-phoneVIP mx-auto text-white">
+                <div className="flex gap-1 items-center rounded-full p-1 bg-phoneVIP mx-auto text-black">
                   <img src={vipImage} alt="" className="w-[20%]" />
                   <p className="text-xs">VIP Level 1</p>
                 </div>
                 {/* Username & Edit */}
 
-                <div className="flex gap-2  items-center text-black font-semibold  lg:text-white bg-opacity-80 px-2 rounded">
+                <div className="flex gap-2  items-center text-black font-semibold  lg:text-black bg-opacity-80 px-2 rounded">
                   <p className="font-medium">rohankh</p>
                   <FaRegEdit />
                 </div>
-                <div className="lg:flex lg:gap-2 lg:leading-normal leading-tight  items-center  px-2 rounded text-[#25252599]  lg:text-white">
+                <div className="lg:flex lg:gap-2 lg:leading-normal leading-tight  items-center  px-2 rounded text-[#25252599]  lg:text-black">
                   <p className="lg:text-base hidden lg:block text-xs">
                     Username:
                   </p>
@@ -162,7 +162,7 @@ const AccountPhone = () => {
                 ৳ <strong> 0.00 </strong>
               </span>
             </div>
-            <div className="flex gap-2 text-white">
+            <div className="flex gap-2 text-black">
               {items.map((item, index) => (
                 <Link to={item.link} key={index}>
                   <div>
@@ -177,7 +177,7 @@ const AccountPhone = () => {
         </div>
       </div>
       <div className="mt-8">
-        <div className="grid grid-cols-4 gap-4 text-center text-white">
+        <div className="grid grid-cols-4 gap-4 text-center text-black">
           {subItems.map((item, index) => (
             <Link
               to={item.link}

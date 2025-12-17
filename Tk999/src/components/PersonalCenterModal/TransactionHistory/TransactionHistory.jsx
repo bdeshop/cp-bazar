@@ -1,7 +1,8 @@
 import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "@/Context/AuthContext";
 import axios from "axios";
-
+import Skeleton from "react-loading-skeleton";
+import 'react-loading-skeleton/dist/skeleton.css'
 
 const TransactionHistory = () => {
   const { language, userId } = useContext(AuthContext);
@@ -14,7 +15,7 @@ const TransactionHistory = () => {
   const [dateFilter, setDateFilter] = useState("");
 
   // ================= Fetch Deposit & Withdraw Separately with Safe Array Handling =================
-    const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     if (!userId) {
       setLoading(false);
@@ -23,7 +24,9 @@ const TransactionHistory = () => {
 
     const fetchDeposits = async () => {
       try {
-        const res = await axios.get(`${API_URL}/api/deposit/deposit-transaction`);
+        const res = await axios.get(
+          `${API_URL}/api/deposit/deposit-transaction`
+        );
         // Handle different possible response structures
         let allDeposits = [];
         if (Array.isArray(res.data)) {
@@ -41,7 +44,9 @@ const TransactionHistory = () => {
         });
 
         // Sort latest first
-        userDeposits.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        userDeposits.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
         setDepositHistory(userDeposits);
       } catch (err) {
         console.error("Deposit fetch error:", err);
@@ -66,7 +71,9 @@ const TransactionHistory = () => {
           return itemUserId === userId;
         });
 
-        userWithdraws.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        userWithdraws.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
         setWithdrawHistory(userWithdraws);
       } catch (err) {
         console.error("Withdraw fetch error:", err);
@@ -119,29 +126,36 @@ const TransactionHistory = () => {
   const getTransactionInfo = (item) => {
     if (activeMainTab === 0) {
       // Deposit - find transaction ID input
-      const txn = item.userInputs?.find((i) =>
-        i.name?.toLowerCase().includes("transaction") || i.label?.toLowerCase().includes("transaction")
+      const txn = item.userInputs?.find(
+        (i) =>
+          i.name?.toLowerCase().includes("transaction") ||
+          i.label?.toLowerCase().includes("transaction")
       );
-      return txn?.value || "-";
+
+      const agentWalletNumber = item.paymentMethod?.agentWalletNumber;
+      if (agentWalletNumber) {
+        return `${txn?.value} / ${agentWalletNumber}` || "-";
+      }
     } else {
       // Withdraw - find Number input
       const number = item.userInputs?.find((i) => i.name === "Number");
-      return number?.value || "-";
+    
+      return `------------- / ${number?.value}` || "-";
     }
   };
 
   return (
     <div className="p-4 space-y-6 bg-gray-50 min-h-screen">
       {/* Tabs */}
-      <div className="flex gap-8 overflow-x-auto border-b pb-3">
+      <div className="flex gap-8 overflow-x-auto border-b pb-3 bg-[#063A49] text-white">
         {tabs.map((tab, i) => (
           <button
             key={i}
             onClick={() => setActiveMainTab(i)}
             className={`pb-3 px-2 font-medium whitespace-nowrap transition-colors ${
               i === activeMainTab
-                ? "border-b-4 border-blue-600 text-blue-600"
-                : "text-gray-600"
+                ? "border-b-4 border-blue-600 text-white"
+                : "text-yellow-300 hover:text-white"
             }`}
           >
             {language === "bn" ? tab.title.bn : tab.title.en}
@@ -173,19 +187,23 @@ const TransactionHistory = () => {
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-gray-500">Loading transactions...</div>
+          <div className="p-12 text-center text-gray-500">
+            <Skeleton height={24} count={3} /> 
+          </div>
         ) : error ? (
           <div className="p-12 text-center text-red-600">{error}</div>
         ) : filteredHistory.length === 0 ? (
           <div className="p-12 text-center text-gray-500">
-            {language === "bn" ? "কোন লেনদেন পাওয়া যায়নি" : "No transactions found"}
+            {language === "bn"
+              ? "কোন লেনদেন পাওয়া যায়নি"
+              : "No transactions found"}
           </div>
         ) : (
           <>
             {/* Desktop Table */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-100">
+                <thead className="bg-[#063A49] text-white">
                   <tr>
                     {tableHeaders.map((h, i) => (
                       <th key={i} className="text-left p-4 text-sm font-medium">
@@ -197,19 +215,37 @@ const TransactionHistory = () => {
                 <tbody>
                   {filteredHistory.map((item, i) => (
                     <tr key={i} className="border-b hover:bg-gray-50">
-                      <td className="p-4 text-sm">{formatDateTime(item.createdAt)}</td>
                       <td className="p-4 text-sm">
-                        {item.paymentMethod?.methodNameBD || item.paymentMethod?.methodName || "-"}
+                        {formatDateTime(item.createdAt)}
                       </td>
-                      <td className="p-4 text-sm font-medium">{item.amount?.toFixed(2) || "-"}</td>
-                      <td className="p-4 text-sm">{getTransactionInfo(item)}</td>
+                      <td className="p-4 text-sm">
+                        {item.paymentMethod?.methodNameBD ||
+                          item.paymentMethod?.methodName ||
+                          "-"}
+                      </td>
+                      <td className="p-4 text-sm font-medium">
+                        {item.amount?.toFixed(2) || "-"}
+                      </td>
+                      <td className="p-4 text-sm">
+                        {getTransactionInfo(item)}
+                      </td>
                       <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            item.status
+                          )}`}
+                        >
                           {item.status === "completed"
-                            ? language === "bn" ? "সফল" : "Success"
+                            ? language === "bn"
+                              ? "সফল"
+                              : "Success"
                             : item.status === "pending"
-                            ? language === "bn" ? "পেন্ডিং" : "Pending"
-                            : language === "bn" ? "বাতিল" : "Rejected"}
+                            ? language === "bn"
+                              ? "পেন্ডিং"
+                              : "Pending"
+                            : language === "bn"
+                            ? "বাতিল"
+                            : "Rejected"}
                         </span>
                       </td>
                     </tr>
@@ -224,31 +260,59 @@ const TransactionHistory = () => {
                 <div key={i} className="p-4 border-b">
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{language === "bn" ? "তারিখ ও সময়" : "Date & Time"}</span>
-                      <span className="font-medium">{formatDateTime(item.createdAt)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{language === "bn" ? "পদ্ধতি" : "Method"}</span>
-                      <span>{item.paymentMethod?.methodNameBD || item.paymentMethod?.methodName || "-"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{language === "bn" ? "পরিমাণ" : "Amount"}</span>
-                      <span className="font-bold text-lg">{item.amount?.toFixed(2)}</span>
+                      <span className="text-gray-600">
+                        {language === "bn" ? "তারিখ ও সময়" : "Date & Time"}
+                      </span>
+                      <span className="font-medium">
+                        {formatDateTime(item.createdAt)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">
-                        {language === "bn" ? "ট্রানজেকশন" : "Transaction ID/Number"}
+                        {language === "bn" ? "পদ্ধতি" : "Method"}
+                      </span>
+                      <span>
+                        {item.paymentMethod?.methodNameBD ||
+                          item.paymentMethod?.methodName ||
+                          "-"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">
+                        {language === "bn" ? "পরিমাণ" : "Amount"}
+                      </span>
+                      <span className="font-bold text-lg">
+                        {item.amount?.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">
+                        {language === "bn"
+                          ? "ট্রানজেকশন"
+                          : "Transaction ID/Number"}
                       </span>
                       <span>{getTransactionInfo(item)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">{language === "bn" ? "স্ট্যাটাস" : "Status"}</span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                      <span className="text-gray-600">
+                        {language === "bn" ? "স্ট্যাটাস" : "Status"}
+                      </span>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          item.status
+                        )}`}
+                      >
                         {item.status === "completed"
-                          ? language === "bn" ? "সফল" : "Success"
+                          ? language === "bn"
+                            ? "সফল"
+                            : "Success"
                           : item.status === "pending"
-                          ? language === "bn" ? "পেন্ডিং" : "Pending"
-                          : language === "bn" ? "বাতিল" : "Rejected"}
+                          ? language === "bn"
+                            ? "পেন্ডিং"
+                            : "Pending"
+                          : language === "bn"
+                          ? "বাতিল"
+                          : "Rejected"}
                       </span>
                     </div>
                   </div>

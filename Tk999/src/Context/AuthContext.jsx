@@ -75,16 +75,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-red-600">
-        <div className="text-white text-xl font-semibold flex items-center gap-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent"></div>
-          <span>Authenticating...</span>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-red-600">
+  //       <div className="text-white text-xl font-semibold flex items-center gap-3">
+  //         <div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent"></div>
+  //         <span>Authenticating...</span>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <AuthContext.Provider

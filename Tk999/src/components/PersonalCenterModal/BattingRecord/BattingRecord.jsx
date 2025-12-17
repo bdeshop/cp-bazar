@@ -1,6 +1,8 @@
 import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "@/Context/AuthContext";
 import axios from "axios";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const BattingRecord = () => {
   const { language, userId } = useContext(AuthContext);
@@ -69,7 +71,7 @@ const BattingRecord = () => {
         { label: { en: "Today", bn: "আজ" }, tableData: filteredHistory },
         { label: { en: "Yesterday", bn: "গতকাল" }, tableData: filteredHistory },
       ],
-    }
+    },
   ];
 
   const mainTab = data?.[activeMainTab];
@@ -166,7 +168,10 @@ const BattingRecord = () => {
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Loading...</div>
+          <div className="p-8 text-center text-gray-500">
+            {" "}
+            <Skeleton height={24} count={3} />{" "}
+          </div>
         ) : filteredHistory.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             {language === "bn"
@@ -178,12 +183,12 @@ const BattingRecord = () => {
             {/* Desktop Table */}
             <div className="overflow-x-auto hidden lg:block">
               <table className="w-full">
-                <thead className="bg-gray-100">
+                <thead className="bg-[#063A49] text-white">
                   <tr>
                     {tableHeaders.map((header, i) => (
                       <th
                         key={i}
-                        className="text-left p-3 text-sm font-medium text-gray-700"
+                        className="text-left p-3 text-sm font-medium text-white"
                       >
                         {language === "bn" ? header.label.bn : header.label.en}
                       </th>
