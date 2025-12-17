@@ -20,7 +20,7 @@ const AccountDetails = ({
 
   return (
     <div className="w-full">
-      <div className="flex flex-col gap-4 bg-white rounded-xl shadow p-5">
+      <div className="flex flex-col gap-4 bg-gradient-to-r from-cyan-400 to-blue-100 rounded-xl shadow p-5">
         {items.map((item, index) => (
           <div
             key={index}

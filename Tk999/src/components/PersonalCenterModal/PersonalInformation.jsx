@@ -26,6 +26,8 @@ import AccountPhone from "./AccountPhone/AccountPhone";
 import Rebate from "./Rebate/Rebate";
 import WithdrawTabsWrapper from "./Withdrawal/WithdrawTabsWrapper";
 import { AuthContext } from "@/Context/AuthContext";
+import TransactionHistory from "./TransactionHistory/TransactionHistory";
+import BattingRecord from "./BattingRecord/BattingRecord";
 
 // TabControl Component
 const TabControl = ({ tabs, activeTab, setActiveTab, language }) => {
@@ -33,7 +35,8 @@ const TabControl = ({ tabs, activeTab, setActiveTab, language }) => {
     <div
       className="w-1/5 hidden rounded-l-xl lg:flex flex-col text-white shadow-md py-6 bg-[#00352f]"
       style={{
-        backgroundImage: "url('https://i.ibb.co.com/bj4q5xrW/abstract-textured-backgound-1258-30436.jpg')",
+        backgroundImage:
+          "url('https://i.ibb.co.com/bj4q5xrW/abstract-textured-backgound-1258-30436.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
@@ -144,7 +147,7 @@ const PersonalInformation = ({ tab = "tab1" }) => {
 
   const tabOptions = [
     { label: { en: "All", bn: "সব" }, value: "all" },
-    { label: { en: "J ili", bn: "জিলি" }, value: "jili" },
+    { label: { en: "Jili", bn: "জিলি" }, value: "jili" },
   ];
 
   const filter = [
@@ -198,68 +201,17 @@ const PersonalInformation = ({ tab = "tab1" }) => {
       icon: <FaMoneyBillWave />,
       content: <WithdrawTabsWrapper />,
     },
-    // {
-    //   id: "tab3",
-    //   label: language === "bn" ? "উত্তোলনের" : "Withdrawal",
-    //   icon: <FaMoneyBillWave />,
-    //   content: (
-    //     <div>
-    //       <Withdrawal
-    //         items={items}
-    //         language={language}
-    //         formData={formData}
-    //         handleInputChange={handleInputChange}
-    //         setFormData={setFormData}
-    //         handleModalSwitchSeparate={(modalName, item) => {
-    //           setActiveModal(modalName);
-    //           setSelectedItem(item);
-    //         }}
-    //       />
-    //       {(activeModal === "bindEwallet" || activeModal === "registerBankAccount") && selectedItem && (
-    //         <div
-    //           className="fixed inset-0 z-50 flex justify-end bg-black bg-opacity-50 overflow-hidden"
-    //           onClick={() => setSelectedItem(null)}
-    //         >
-    //           <AccountDetailsModal
-    //             items={items}
-    //             handleSubmit={handleSubmit}
-    //             activeModal={activeModal}
-    //             language={language}
-    //             formData={formData}
-    //             handleInputChange={handleInputChange}
-    //             setFormData={setFormData}
-    //             setActiveModal={setActiveModal}
-    //             selectedItem={selectedItem}
-    //             setSelectedItem={setSelectedItem}
-    //           />
-    //         </div>
-    //       )}
-    //     </div>
-    //   ),
-    // },
     {
       id: "tab4",
       label: language === "bn" ? "বেটিং রেকর্ড" : "Betting Record",
       icon: <FaClipboardList />,
-      content: (
-        <ReusableTabs
-          data={tabData}
-          filterOptions={tabOptions}
-          filters={filter[0]}
-        />
-      ),
+      content: <BattingRecord />,
     },
     {
       id: "tab5",
-      label: language === "bn" ? "অ্যাকাউন্ট রেকর্ড" : "Account Record",
+      label: language === "bn" ? "ট্রান্সেকশন রেকর্ড" : "Transaction Record",
       icon: <FaRegFileAlt />,
-      content: (
-        <ReusableTabs
-          data={tabData}
-          filterOptions={tabOptions}
-          filters={filter[1]}
-        />
-      ),
+      content: <TransactionHistory />,
     },
     {
       id: "tab6",

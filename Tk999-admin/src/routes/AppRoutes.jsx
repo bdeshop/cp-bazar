@@ -47,6 +47,7 @@ import OpaySetting from "../pages/OpaySetting";
 import OpayApi from "../pages/OpayApi";
 import OpayDeviceMonitoring from "../pages/OpayDeviceMonitoring";
 import OpayDepositAdmin from "../pages/OpayDepositAdmin";
+import GameHistory from "../pages/GameHistory";
 
 const AppRoutes = () => (
   <Routes>
@@ -127,6 +128,7 @@ const AppRoutes = () => (
     <Route path="/opay/api" element={<OpayApi />} />
     <Route path="/opay/device-monitoring" element={<OpayDeviceMonitoring />} />
     <Route path="/opay/deposit" element={<OpayDepositAdmin />} />
+    <Route path="/game-history" element={<GameHistory />} />
   </Routes>
 );
 

@@ -585,7 +585,7 @@ const MobileSidebar = ({ open, onClose, handleMenuSelect }) => {
               </Link>
               <Link
                 style={{ color: "inherit", textDecoration: "inherit" }}
-                to="/game-control"
+                to="/game-history"
               >
                 <MenuItem
                   icon={<FaHistory size={16} />}

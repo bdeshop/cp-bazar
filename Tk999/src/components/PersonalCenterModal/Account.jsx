@@ -83,7 +83,7 @@ const Account = ({
 
   return (
     <div className="grid grid-cols-3 gap-2 p-6">
-      <div className="bg-bgAccount py-2 rounded-xl shadow-md mt-6 h-[600px]">
+      <div className="bg-bgAccount py-2 rounded-xl shadow-md mt-6 h-[600px] bg-gradient-to-r from-red-100 via-yellow-100 to-blue-100">
         {/* TOP PROFILE CARD */}
         <div
           className="flex flex-row gap-3 bg-cover bg-center p-4 "

@@ -1,20 +1,28 @@
-import { useSelector, useDispatch } from 'react-redux';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { getUserInfo } from '../redux/userFrontend/userFrontendAPI';
-import styled from 'styled-components';
-import { FaUser, FaEnvelope, FaPhone, FaGlobe, FaMoneyBill, FaEdit, FaUserShield, FaChartLine, FaChevronRight } from 'react-icons/fa';
-import UserDetailsEditProfile from './../components/userDetailsEditProfile/userDetailsEditProfile';
-import { baseURL_For_IMG_UPLOAD } from '../utils/baseURL';
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import styled from "styled-components";
+import {
+  FaUser,
+  FaEnvelope,
+  FaPhone,
+  FaGlobe,
+  FaMoneyBill,
+  FaEdit,
+  FaUserShield,
+  FaChartLine,
+  FaChevronRight,
+} from "react-icons/fa";
+import UserDetailsEditProfile from "../components/userDetailsEditProfile/userDetailsEditProfile";
+import { baseURL_For_IMG_UPLOAD, API_URL } from "../utils/baseURL";
 
-// Styled Components
+// Styled Components (kept mostly same, added for new sections like history table)
 const DashboardContainer = styled.div`
   display: flex;
   min-height: 100vh;
   padding: 1.5rem;
   gap: 1rem;
   background: #f9fafb;
-
   @media (max-width: 768px) {
     flex-direction: column;
     padding: 1rem;
@@ -27,7 +35,6 @@ const Sidebar = styled.div`
   border-radius: 0.5rem;
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-
   @media (max-width: 768px) {
     flex: none;
     width: 100%;
@@ -41,7 +48,6 @@ const MainContent = styled.div`
   border-radius: 0.5rem;
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-
   @media (max-width: 768px) {
     padding: 1rem;
   }
@@ -56,7 +62,6 @@ const Header = styled.div`
   background: #1c2937;
   border-radius: 0.375rem;
   color: #ffffff;
-
   @media (max-width: 480px) {
     flex-direction: column;
     align-items: flex-start;
@@ -72,7 +77,6 @@ const Title = styled.h1`
   align-items: center;
   gap: 0.75rem;
   color: #ffffff;
-
   @media (max-width: 480px) {
     font-size: 1.25rem;
   }
@@ -88,7 +92,6 @@ const SummaryCard = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   &:hover {
     background: rgb(61, 88, 118);
   }
@@ -111,12 +114,12 @@ const StatusBadge = styled.span`
   font-weight: 500;
   ${({ status }) => {
     switch (status) {
-      case 'active':
+      case "active":
         return `
           background: #16a34a;
           color: #ffffff;
         `;
-      case 'banned':
+      case "banned":
         return `
           background: #dc2626;
           color: #ffffff;
@@ -132,7 +135,6 @@ const StatusBadge = styled.span`
 
 const InfoSection = styled.div`
   margin-bottom: 1.5rem;
-
   @media (max-width: 480px) {
     margin-bottom: 1rem;
   }
@@ -149,7 +151,6 @@ const InfoGrid = styled.div`
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr));
-
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 0.75rem;
@@ -193,7 +194,6 @@ const ButtonContainer = styled.div`
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
-
   @media (max-width: 480px) {
     width: 100%;
     justify-content: space-between;
@@ -208,21 +208,18 @@ const ActionButton = styled.button`
   height: 2.5rem;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
-  background: ${({ primary }) => (primary ? '#dc2626' : '#2563eb')};
+  background: ${({ primary }) => (primary ? "#dc2626" : "#2563eb")};
   color: #ffffff;
   font-size: 0.875rem;
   font-weight: 500;
   outline: none;
   transition: background-color 0.2s ease;
-
   &:hover {
-    background: ${({ primary }) => (primary ? '#b91c1c' : '#1d4ed8')};
+    background: ${({ primary }) => (primary ? "#b91c1c" : "#1d4ed8")};
   }
-
   svg {
     margin-right: 0.5rem;
   }
-
   @media (max-width: 480px) {
     flex: 1;
     padding: 0.75rem 1rem;
@@ -251,11 +248,9 @@ const ErrorAlert = styled.div`
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
 `;
 
-// Styled Components for Phone Number Display
+// Styled Components for Phone Number Display (kept, but mapped whatsapp to phone)
 const PhoneNumberContainer = styled.div`
-  margin-bottom: 24px;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 24px;
+  margin-bottom: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -266,9 +261,7 @@ const PhoneNumberWrapper = styled.div`
   align-items: center;
   gap: 12px;
   background: #f9fafb;
-  padding: 12px 16px;
   border-radius: 6px;
-  border: 1px solid #e5e7eb;
   width: 100%;
   justify-content: center;
 `;
@@ -281,45 +274,63 @@ const CountryCode = styled.span`
 
 const PhoneNumber = styled.span`
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
   color: #1f2937;
 `;
 
-
-
 const VerifiedText = styled.span`
-  color: #16a34a; /* Green color for verified */
+  color: #16a34a;
   font-weight: 600;
 `;
 
 const NotVerifiedText = styled.span`
-  color: #dc2626; /* Red color for not verified */
+  color: #dc2626;
   font-weight: 600;
 `;
 
-
+// New styled for history table
+const HistoryTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  th,
+  td {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    text-align: left;
+  }
+  th {
+    background: #f3f4f6;
+  }
+`;
 
 export default function UserDetails() {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { userId } = useParams();
   const [isEditing, setIsEditing] = useState(false);
-  const { userInfo, userLoading, userError } = useSelector((state) => state.userCustomer);
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    dispatch(getUserInfo(userId));
-  }, [dispatch, userId]);
+    setLoading(true);
+    axios
+      .get(`${API_URL}/api/users/${userId}`)
+      .then((res) => {
+        setUserInfo(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || "Failed to load user data");
+        setLoading(false);
+      });
+  }, [userId]);
 
-
-  
-  useEffect(()=>{
-
-    console.log(`${baseURL_For_IMG_UPLOAD}s/${userInfo?.profileImage}`);
-    
-
-  },[baseURL_For_IMG_UPLOAD,userInfo])
-
-
+  useEffect(() => {
+    if (userInfo?.profileImage) {
+      console.log(`${baseURL_For_IMG_UPLOAD}s/${userInfo.profileImage}`);
+    }
+  }, [userInfo]);
 
   const handleEditProfile = () => {
     setIsEditing(true);
@@ -329,20 +340,20 @@ export default function UserDetails() {
     setIsEditing(false);
   };
 
-  if (userLoading) {
+  if (loading) {
     return (
       <LoadingContainer>
-        <FaUser style={{ marginRight: '0.75rem' }} /> Loading User Data...
+        <FaUser style={{ marginRight: "0.75rem" }} /> Loading User Data...
       </LoadingContainer>
     );
   }
 
-  if (userError) {
+  if (error) {
     return (
       <DashboardContainer>
         <ErrorAlert>
-          <strong style={{ marginRight: '0.5rem' }}>Error:</strong>
-          {userError}
+          <strong style={{ marginRight: "0.5rem" }}>Error:</strong>
+          {error}
         </ErrorAlert>
       </DashboardContainer>
     );
@@ -351,41 +362,59 @@ export default function UserDetails() {
   return (
     <DashboardContainer>
       <Sidebar>
-        <SummaryCard className="flex items-center justify-center">
+        <SummaryCard>
           <SummaryLabel>Image</SummaryLabel>
-          <div style={{ borderRadius: '50%', width: '2.5rem', height: '2.5rem', backgroundColor: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {userInfo?.profileImage === '' ? (
-              <FaUser className="text-xl" />
-            ) : (
+          <div
+            style={{
+              borderRadius: "50%",
+              width: "2.5rem",
+              height: "2.5rem",
+              backgroundColor: "#f9fafb",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {userInfo?.profileImage ? (
               <img
-                src={`${baseURL_For_IMG_UPLOAD}s/${userInfo?.profileImage}`}
+                src={`${baseURL_For_IMG_UPLOAD}s/${userInfo.profileImage}`}
                 alt="Profile Image"
-                style={{ borderRadius: '50%', width: '100%', height: '100%' }}
+                style={{ borderRadius: "50%", width: "100%", height: "100%" }}
                 onError={(e) => {
-                  e.target.src = 'https://cdn-icons-png.freepik.com/512/8532/8532963.png?ga=GA1.1.1458044456.1733050642';
+                  e.target.src =
+                    "https://cdn-icons-png.freepik.com/512/8532/8532963.png?ga=GA1.1.1458044456.1733050642";
                 }}
               />
+            ) : (
+              <FaUser className="text-xl" />
             )}
           </div>
         </SummaryCard>
         <SummaryCard>
-          <SummaryLabel>User</SummaryLabel>
-          <SummaryValue>{userInfo?.name || '-'}</SummaryValue>
+          <SummaryLabel>Username</SummaryLabel>
+          <SummaryValue>{userInfo?.username || "-"}</SummaryValue>
         </SummaryCard>
         <SummaryCard>
           <SummaryLabel>Balance</SummaryLabel>
-          <SummaryValue>{userInfo?.balance !== undefined ? `${userInfo.balance.toFixed(2)}` : '-'}</SummaryValue>
+          <SummaryValue>
+            {userInfo?.balance !== undefined
+              ? userInfo.balance.toFixed(2)
+              : "-"}
+          </SummaryValue>
         </SummaryCard>
         <SummaryCard>
           <SummaryLabel>Status</SummaryLabel>
-          <StatusBadge status={userInfo?.status}>
-            {userInfo?.status === 'active' ? 'Active' : userInfo?.status === 'banned' ? 'Banned' : 'Inactive'}
+          <StatusBadge status={userInfo?.isActive ? "active" : "inactive"}>
+            {userInfo?.isActive ? "Active" : "Deactive"}
           </StatusBadge>
         </SummaryCard>
       </Sidebar>
       <MainContent>
         {isEditing ? (
-          <UserDetailsEditProfile userInfo={userInfo} onCancel={handleCancelEdit} />
+          <UserDetailsEditProfile
+            userInfo={userInfo}
+            onCancel={handleCancelEdit}
+          />
         ) : (
           <>
             <Header>
@@ -406,132 +435,162 @@ export default function UserDetails() {
                     <FaUser />
                   </IconWrapper>
                   <Label>ID:</Label>
-                  <Value>{userInfo?._id || '-'}</Value>
+                  <Value>{userInfo?._id || "-"}</Value>
                 </InfoItem>
                 <InfoItem>
                   <IconWrapper>
                     <FaUser />
                   </IconWrapper>
-                  <Label>Name:</Label>
-                  <Value>{userInfo?.name || '-'}</Value>
+                  <Label>Username:</Label>
+                  <Value>{userInfo?.username || "-"}</Value>
                 </InfoItem>
                 <InfoItem>
                   <IconWrapper>
                     <FaEnvelope />
                   </IconWrapper>
                   <Label>Email:</Label>
-                  <Value>{userInfo?.email || '-'}</Value>
+                  <Value>{userInfo?.email || "-"}</Value>
                 </InfoItem>
                 <InfoItem>
                   <IconWrapper>
                     <FaPhone />
                   </IconWrapper>
-                  <Label>Phone:</Label>
+                  <Label>Phone :</Label>
                   <Value>
                     <PhoneNumberContainer>
                       <PhoneNumberWrapper>
-                        <CountryCode>
-                          {(userInfo?.currency === 'BDT' && '+880') ||
-                            (userInfo?.currency === 'INR' && '+91') ||
-                            (userInfo?.currency === 'NPR' && '+977') ||
-                            (userInfo?.currency === 'PKR' && '+92') ||
-                            ''}
-                        </CountryCode>
-                        <PhoneNumber>{userInfo?.phoneNumber || '-'}</PhoneNumber>
+                        {/* <CountryCode>+880</CountryCode>{" "} */}
+                        {/* Assume based on number, adjust if needed */}
+                        <PhoneNumber>{userInfo?.whatsapp || "-"}</PhoneNumber>
                       </PhoneNumberWrapper>
                     </PhoneNumberContainer>
                   </Value>
                 </InfoItem>
                 <InfoItem>
                   <IconWrapper>
-                    <FaGlobe />
-                  </IconWrapper>
-                  <Label>Country:</Label>
-                  <Value>{userInfo?.country || '-'}</Value>
-                </InfoItem>
-                <InfoItem>
-                  <IconWrapper>
-                    <FaUserShield />
-                  </IconWrapper>
-                  <Label>Email Verified:</Label>
-                  <Value>
-                    {userInfo?.emailVerified ? (
-                      <VerifiedText>Verified</VerifiedText>
-                    ) : (
-                      <NotVerifiedText>
-                        <span>Unverified - OTP: {userInfo?.emailVerifyOTP}</span>
-                      </NotVerifiedText>
-                    )}
-                  </Value>
-                </InfoItem>
-                <InfoItem>
-                  <IconWrapper>
-                    <FaUserShield />
-                  </IconWrapper>
-                  <Label>Phone Verified:</Label>
-                  <Value>
-                    {userInfo?.phoneNumberVerified ? (
-                      <VerifiedText>Verified</VerifiedText>
-                    ) : (
-                      <NotVerifiedText>
-                        <span>Unverified - OTP: {userInfo?.phoneNumberOTP}</span>
-                      </NotVerifiedText>
-                    )}
-                  </Value>
-                </InfoItem>
-              </InfoGrid>
-            </InfoSection>
-            <InfoSection>
-              <SectionTitle>Account Details</SectionTitle>
-              <InfoGrid>
-                <InfoItem>
-                  <IconWrapper>
-                    <FaMoneyBill />
-                  </IconWrapper>
-                  <Label>Currency:</Label>
-                  <Value>{userInfo?.currency || '-'}</Value>
-                </InfoItem>
-                <InfoItem>
-                  <IconWrapper>
-                    <FaMoneyBill />
-                  </IconWrapper>
-                  <Label>Deposit:</Label>
-                  <Value>{userInfo?.deposit !== undefined ? `${userInfo.deposit.toFixed(2)}` : '-'}</Value>
-                </InfoItem>
-                <InfoItem>
-                  <IconWrapper>
-                    <FaMoneyBill />
-                  </IconWrapper>
-                  <Label>Withdraw:</Label>
-                  <Value>{userInfo?.withdraw !== undefined ? `${userInfo.withdraw.toFixed(2)}` : '-'}</Value>
-                </InfoItem>
-                <InfoItem>
-                  <IconWrapper>
                     <FaUserShield />
                   </IconWrapper>
                   <Label>Role:</Label>
-                  <Value>{userInfo?.role || '-'}</Value>
+                  <Value>{userInfo?.role || "-"}</Value>
+                </InfoItem>
+                <InfoItem>
+                  <IconWrapper>
+                    <FaUserShield />
+                  </IconWrapper>
+                  <Label>Status:</Label>
+                  <Value>{userInfo?.isActive ? "Active" : "Inactive"}</Value>
                 </InfoItem>
                 <InfoItem>
                   <IconWrapper>
                     <FaUser />
                   </IconWrapper>
-                  <Label>Player ID:</Label>
-                  <Value>{userInfo?.player_id || '-'}</Value>
+                  <Label>Referral Code:</Label>
+                  <Value>{userInfo?.referralCode || "-"}</Value>
+                </InfoItem>
+                <InfoItem>
+                  <IconWrapper>
+                    <FaUser />
+                  </IconWrapper>
+                  <Label>Referred By:</Label>
+                  <Value>{userInfo?.referredBy?.$oid || "-"}</Value>
+                </InfoItem>
+              </InfoGrid>
+            </InfoSection>
+            <InfoSection>
+              <SectionTitle>Financial Information</SectionTitle>
+              <InfoGrid>
+                <InfoItem>
+                  <IconWrapper>
+                    <FaMoneyBill />
+                  </IconWrapper>
+                  <Label>Balance:</Label>
+                  <Value>
+                    {userInfo?.balance !== undefined
+                      ? userInfo.balance.toFixed(2)
+                      : "-"}
+                  </Value>
                 </InfoItem>
                 <InfoItem>
                   <IconWrapper>
                     <FaMoneyBill />
                   </IconWrapper>
-                  <Label>Promo Code:</Label>
-                  <Value>{userInfo?.promoCode || '-'}</Value>
+                  <Label>Commission Balance:</Label>
+                  <Value>
+                    {userInfo?.commissionBalance !== undefined
+                      ? userInfo.commissionBalance.toFixed(2)
+                      : "-"}
+                  </Value>
+                </InfoItem>
+              </InfoGrid>
+            </InfoSection>
+            <InfoSection>
+              <SectionTitle>Commissions</SectionTitle>
+              <InfoGrid>
+                <InfoItem>
+                  <IconWrapper>
+                    <FaMoneyBill />
+                  </IconWrapper>
+                  <Label>Game Loss Commission:</Label>
+                  <Value>
+                    {userInfo?.gameLossCommission !== undefined
+                      ? userInfo.gameLossCommission.toFixed(2)
+                      : "-"}
+                  </Value>
                 </InfoItem>
                 <InfoItem>
                   <IconWrapper>
                     <FaMoneyBill />
                   </IconWrapper>
-                  <Label>Bonus:</Label>
-                  <Value>{userInfo?.bonusSelection || '-'}</Value>
+                  <Label>Deposit Commission:</Label>
+                  <Value>
+                    {userInfo?.depositCommission !== undefined
+                      ? userInfo.depositCommission.toFixed(2)
+                      : "-"}
+                  </Value>
+                </InfoItem>
+                <InfoItem>
+                  <IconWrapper>
+                    <FaMoneyBill />
+                  </IconWrapper>
+                  <Label>Refer Commission:</Label>
+                  <Value>
+                    {userInfo?.referCommission !== undefined
+                      ? userInfo.referCommission.toFixed(2)
+                      : "-"}
+                  </Value>
+                </InfoItem>
+                <InfoItem>
+                  <IconWrapper>
+                    <FaMoneyBill />
+                  </IconWrapper>
+                  <Label>Game Loss Commission Balance:</Label>
+                  <Value>
+                    {userInfo?.gameLossCommissionBalance !== undefined
+                      ? userInfo.gameLossCommissionBalance.toFixed(2)
+                      : "-"}
+                  </Value>
+                </InfoItem>
+                <InfoItem>
+                  <IconWrapper>
+                    <FaMoneyBill />
+                  </IconWrapper>
+                  <Label>Deposit Commission Balance:</Label>
+                  <Value>
+                    {userInfo?.depositCommissionBalance !== undefined
+                      ? userInfo.depositCommissionBalance.toFixed(2)
+                      : "-"}
+                  </Value>
+                </InfoItem>
+                <InfoItem>
+                  <IconWrapper>
+                    <FaMoneyBill />
+                  </IconWrapper>
+                  <Label>Refer Commission Balance:</Label>
+                  <Value>
+                    {userInfo?.referCommissionBalance !== undefined
+                      ? userInfo.referCommissionBalance.toFixed(2)
+                      : "-"}
+                  </Value>
                 </InfoItem>
               </InfoGrid>
             </InfoSection>
@@ -542,17 +601,62 @@ export default function UserDetails() {
                   <IconWrapper>
                     <FaUser />
                   </IconWrapper>
-                  <Label>Created:</Label>
-                  <Value>{userInfo?.createdAt ? new Date(userInfo.createdAt).toLocaleString() : '-'}</Value>
+                  <Label>Created At:</Label>
+                  <Value>
+                    {userInfo?.createdAt
+                      ? new Date(userInfo.createdAt).toLocaleString()
+                      : "-"}
+                  </Value>
                 </InfoItem>
                 <InfoItem>
                   <IconWrapper>
                     <FaUser />
                   </IconWrapper>
-                  <Label>Updated:</Label>
-                  <Value>{userInfo?.updatedAt ? new Date(userInfo.updatedAt).toLocaleString() : '-'}</Value>
+                  <Label>Updated At:</Label>
+                  <Value>
+                    {userInfo?.updatedAt
+                      ? new Date(userInfo.updatedAt).toLocaleString()
+                      : "-"}
+                  </Value>
                 </InfoItem>
               </InfoGrid>
+            </InfoSection>
+            <InfoSection>
+              <SectionTitle>Game History</SectionTitle>
+              {userInfo?.gameHistory && userInfo.gameHistory.length > 0 ? (
+                <HistoryTable>
+                  <thead>
+                    <tr>
+                      <th>Provider Code</th>
+                      <th>Game Code</th>
+                      <th>Bet Type</th>
+                      <th>Amount</th>
+                      <th>Transaction ID</th>
+                      <th>Status</th>
+                      <th>Created At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userInfo.gameHistory.map((history, index) => (
+                      <tr key={index}>
+                        <td>{history.provider_code || "-"}</td>
+                        <td>{history.game_code || "-"}</td>
+                        <td>{history.bet_type || "-"}</td>
+                        <td>{history.amount || "-"}</td>
+                        <td>{history.transaction_id || "-"}</td>
+                        <td>{history.status || "-"}</td>
+                        <td>
+                          {history.createdAt
+                            ? new Date(history.createdAt).toLocaleString()
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </HistoryTable>
+              ) : (
+                <Value>No game history available</Value>
+              )}
             </InfoSection>
           </>
         )}
