@@ -4,25 +4,29 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../utils/baseURL";
 
-// Styled Components
+// Styled Components - Colorful Design
 const DashboardContainer = styled.div`
   padding: 1rem;
   margin: 0 auto;
   max-width: 90rem;
   width: 100%;
   box-sizing: border-box;
-  background: #f9fafb;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
   min-height: 100vh;
   @media (min-width: 768px) {
-    padding: 1.5rem;
+    padding: 2rem;
   }
 `;
 
 const Header = styled.div`
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(99, 86, 246, 0.2);
   @media (min-width: 768px) {
     flex-direction: row;
     justify-content: space-between;
@@ -31,10 +35,11 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
-  font-size: 1.5rem;
-  color: #000000;
+  font-size: 1.75rem;
+  color: #ffffff;
   margin: 0;
-  font-weight: 600;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 `;
 
 const FilterContainer = styled.div`
@@ -56,59 +61,63 @@ const SearchContainer = styled.div`
 `;
 
 const SearchInput = styled.input`
-  height: 2.5rem;
+  height: 2.75rem;
   width: 100%;
-  border-radius: 0.375rem;
-  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  border: 2px solid #e0e7ff;
   background: #ffffff;
-  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
-  font-size: 0.875rem;
-  color: #000000;
+  padding: 0.5rem 0.75rem 0.5rem 2.75rem;
+  font-size: 0.925rem;
+  color: #1e293b;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(99, 86, 246, 0.1);
+
   &::placeholder {
-    color: #6b7280;
+    color: #94a3b8;
   }
   &:focus {
-    border-color: #1c2937;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 86, 246, 0.3);
   }
 `;
 
 const SearchIcon = styled.span`
   position: absolute;
-  left: 0.75rem;
+  left: 0.875rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #6b7280;
-  font-size: 1.125rem;
+  color: #6366f1;
+  font-size: 1.25rem;
 `;
 
 const StatusFilter = styled.select`
-  height: 2.5rem;
+  height: 2.75rem;
   width: 100%;
-  max-width: 12rem;
-  border-radius: 0.375rem;
-  border: 1px solid #d1d5db;
+  max-width: 14rem;
+  border-radius: 0.75rem;
+  border: 2px solid #e0e7ff;
   background: #ffffff;
-  padding: 0 0.75rem;
-  font-size: 0.875rem;
-  color: #000000;
+  padding: 0 1rem;
+  font-size: 0.925rem;
+  color: #1e293b;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(99, 86, 246, 0.1);
+
   &:focus {
-    border-color: #1c2937;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 86, 246, 0.3);
   }
 `;
 
 const TableWrapper = styled.div`
   background: #ffffff;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  margin: 0 0.5rem 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin: 0 0.5rem 1.5rem;
   overflow-x: auto;
-  border: 1px solid #d1d5db;
+  border: 1px solid #e0e7ff;
   @media (max-width: 767px) {
     display: none;
   }
@@ -119,32 +128,36 @@ const StyledTable = styled.table`
   border-collapse: separate;
   border-spacing: 0;
   min-width: 640px;
+
   th {
-    background: #1c2937;
-    padding: 0.75rem 1rem;
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+    padding: 1rem 1.25rem;
     text-align: left;
     font-weight: 600;
     color: #ffffff;
-    border-bottom: 0.1875rem solid #dbeafe;
+    border-bottom: 4px solid #a78bfa;
     white-space: nowrap;
     position: sticky;
     top: 0;
     z-index: 1;
   }
+
   td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
     vertical-align: middle;
-    color: #374151;
+    color: #334155;
   }
+
   tr:hover {
-    background: #f3f4f6;
-    transition: background-color 0.2s ease;
+    background: linear-gradient(90deg, #eef2ff, #fdf4ff);
+    transition: background 0.3s ease;
   }
+
   @media (min-width: 1024px) {
     th,
     td {
-      padding: 1.125rem;
+      padding: 1.25rem 1.5rem;
     }
   }
 `;
@@ -152,7 +165,7 @@ const StyledTable = styled.table`
 const CardContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
   margin: 0 0.5rem;
   @media (min-width: 768px) {
     display: none;
@@ -161,30 +174,47 @@ const CardContainer = styled.div`
 
 const UserCard = styled.div`
   background: #ffffff;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  padding: 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(99, 86, 246, 0.15);
+  padding: 1.25rem;
   display: grid;
-  gap: 0.75rem;
-  font-size: 0.875rem;
-  border: 1px solid #d1d5db;
-  &:hover {
-    background: #f3f4f6;
+  gap: 1rem;
+  font-size: 0.925rem;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+  transition: all 0.3s ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: 1rem;
+    background: linear-gradient(45deg, #6366f1, #ec4899);
+    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: destination-out;
   }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(99, 86, 246, 0.25);
+  }
+
   @media (min-width: 640px) {
-    padding: 1.5rem;
-    gap: 1rem;
-    font-size: 0.9375rem;
+    padding: 1.75rem;
+    gap: 1.25rem;
   }
 `;
 
 const CardLabel = styled.span`
-  font-weight: 600;
-  color: #000000;
+  font-weight: 700;
+  color: #4f46e5;
 `;
 
 const CardValue = styled.span`
-  color: #374151;
+  color: #334155;
   word-break: break-word;
 `;
 
@@ -192,17 +222,18 @@ const LoadingContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 60vh;
+  height: 70vh;
 `;
 
 const StyledSpinner = styled.div`
-  border: 0.375rem solid #e5e7eb;
-  border-top: 0.375rem solid #1c2937;
-  border-right: 0.375rem solid #dc2626;
+  border: 6px solid #e0e7ff;
+  border-top: 6px solid #6366f1;
+  border-right: 6px solid #ec4899;
   border-radius: 50%;
-  width: 3rem;
-  height: 3rem;
+  width: 4rem;
+  height: 4rem;
   animation: spin 0.8s linear infinite;
+
   @keyframes spin {
     0% {
       transform: rotate(0deg);
@@ -214,60 +245,80 @@ const StyledSpinner = styled.div`
 `;
 
 const ErrorAlert = styled.div`
-  padding: 1rem;
-  background: #fef2f2;
+  padding: 1.5rem;
+  background: linear-gradient(90deg, #fee2e2, #fecaca);
   color: #dc2626;
-  border-radius: 0.375rem;
+  border-radius: 1rem;
   text-align: center;
   margin: 0 0.75rem;
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 20px rgba(220, 38, 38, 0.1);
+  border: 1px solid #fca5a5;
 `;
 
 const StatusBadge = styled.span`
-  padding: 0.375rem 0.875rem;
-  border-radius: 1.25rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   display: inline-block;
+  text-transform: capitalize;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
   ${({ status }) => {
     switch (status) {
       case "active":
-        return `background: #16a34a; color: #ffffff;`;
+        return `
+          background: linear-gradient(90deg, #10b981, #34d399);
+          color: #ffffff;
+        `;
       case "inactive":
-        return `background: #dc2626; color: #ffffff;`;
+        return `
+          background: linear-gradient(90deg, #ef4444, #f87171);
+          color: #ffffff;
+        `;
       default:
-        return `background: #6b7280; color: #ffffff;`;
+        return `
+          background: linear-gradient(90deg, #6b7280, #9ca3af);
+          color: #ffffff;
+        `;
     }
   }}
 `;
 
 const NoDataMessage = styled.div`
   text-align: center;
-  padding: 1.75rem;
-  color: rgb(35, 76, 119);
-  font-size: 1.0625rem;
-  font-weight: 500;
-  background: #f3f4f6;
-  border-radius: 0.375rem;
-  border: 1px dashed #93c5fd;
+  padding: 3rem 1.5rem;
+  color: #6366f1;
+  font-size: 1.25rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #f8fafc, #e0e7ff);
+  border-radius: 1rem;
+  border: 2px dashed #a78bfa;
+  margin: 1rem;
 `;
 
 const ActionButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 2.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  background: #1c2937;
+  height: 2.75rem;
+  padding: 0 1.5rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
   color: #ffffff;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.925rem;
+  font-weight: 600;
   outline: none;
-  transition: background-color 0.2s ease;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 15px rgba(99, 86, 246, 0.3);
+
   &:hover {
-    background: rgb(65, 93, 123);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(99, 86, 246, 0.4);
+    background: linear-gradient(90deg, #5b21b6, #7c3aed);
   }
 `;
 
@@ -277,9 +328,8 @@ export default function AllUser() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // all, active, inactive
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     axios
@@ -297,31 +347,20 @@ export default function AllUser() {
       });
   }, []);
 
-  // Filter users by username AND status
   const filteredUsers = users.filter((user) => {
     const matchesSearch = user.username
       ?.toLowerCase()
       .includes(searchTerm.toLowerCase());
-
     const matchesStatus =
       statusFilter === "all" ||
       (statusFilter === "active" && user.isActive) ||
       (statusFilter === "inactive" && !user.isActive);
-
     return matchesSearch && matchesStatus;
   });
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleStatusChange = (e) => {
-    setStatusFilter(e.target.value);
-  };
-
-  const handleViewUser = (userId) => {
-    navigate(`/user/${userId}`);
-  };
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
+  const handleStatusChange = (e) => setStatusFilter(e.target.value);
+  const handleViewUser = (userId) => navigate(`/user/${userId}`);
 
   if (loading) {
     return (
@@ -388,7 +427,6 @@ export default function AllUser() {
               onChange={handleSearchChange}
             />
           </SearchContainer>
-
           <StatusFilter value={statusFilter} onChange={handleStatusChange}>
             <option value="all">All Status</option>
             <option value="active">Active</option>

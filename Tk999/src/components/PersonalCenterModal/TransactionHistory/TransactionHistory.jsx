@@ -138,7 +138,8 @@ const TransactionHistory = () => {
       }
     } else {
       // Withdraw - find Number input
-      const number = item.userInputs?.find((i) => i.name === "Number");
+      const number = item.userInputs?.find((i) => i.type === "number");
+      console.log(number);
     
       return `------------- / ${number?.value}` || "-";
     }

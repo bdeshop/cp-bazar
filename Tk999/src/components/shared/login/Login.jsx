@@ -2,10 +2,12 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "@/context/AuthContext";
-import toast from "react-hot-toast"; // টোস্ট
-import logo_bg from "../../../assets/login_page_image.png";
-import loginPGIMG from "../../../assets/loginPGIMG.png";
-import b__2 from "../../../assets/22221.png";
+import toast from "react-hot-toast";
+
+import bannerImg from "../../../assets/login_page_image.png";
+import logo from "../../../assets/22221.png";
+
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login = ({ onClose, onRegisterClick }) => {
   const [username, setUsername] = useState("");
@@ -13,6 +15,7 @@ const Login = ({ onClose, onRegisterClick }) => {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPass, setShowPass] = useState(false);
 
   const { setUser } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -42,29 +45,16 @@ const Login = ({ onClose, onRegisterClick }) => {
         throw new Error(data.message || "Login failed");
       }
 
-      // localStorage এ সেভ
       localStorage.setItem("userId", data.user.id);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // AuthContext আপডেট
       setUser(data.user);
-
-      // সফল টোস্ট
       toast.success(`Welcome, ${data.user.username}!`);
 
-      // মোডাল বন্ধ
       onClose();
-
-      // রোল অনুযায়ী রিডাইরেক্ট
-      if (data.user.role === "user" && data.user.isActive) {
-        navigate("/");
-      } else if (data.user.role === "master-affiliate" && !data.user.isActive) {
-        navigate("/");
-      } else {
-        navigate("/");
-      }
+      navigate("/");
     } catch (err) {
-      const errorMsg = err.message || "Login failed. Please try again.";
+      const errorMsg = err.message || "Login failed";
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -73,123 +63,124 @@ const Login = ({ onClose, onRegisterClick }) => {
   };
 
   return (
-    <div
-      className="w-full md:w-[680px] h-[500px] bg-center bg-cover bg-no-repeat rounded-2xl shadow-2xl overflow-hidden relative bg-white/10 backdrop-blur-md"
-      style={{ backgroundImage: `url(${loginPGIMG})` }}
-    >
-      {/* Close Button */}
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 z-10 text-yellow-400 text-2xl font-bold hover:text-yellow-300 transition"
-        disabled={loading}
-      >
-        X
-      </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="relative w-[95%] max-w-[900px] h-[600px] rounded-2xl overflow-hidden shadow-2xl bg-[#053a40] flex">
+        {/* ❌ Close */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-yellow-400 text-black font-bold hover:bg-yellow-300"
+        >
+          ✕
+        </button>
 
-      <div className="flex h-full">
-        {/* Left Banner */}
-        <div className="hidden md:flex flex-col items-center justify-center bg-teal-800/50 w-1/2 p-6">
+        {/* LEFT BANNER */}
+        <div className="hidden md:block w-1/2 relative">
           <img
-            src={logo_bg}
-            alt="Login Banner"
-            className="w-full h-full object-cover rounded-l-xl"
+            src={bannerImg}
+            alt="banner"
+            className="w-full h-full"
           />
+
+         
         </div>
 
-        {/* Right Form */}
-        <div className="w-full md:w-1/2 p-8 flex flex-col justify-center bg-white/10 backdrop-blur-md">
-          <h2 className="text-yellow-400 text-2xl font-bold mb-6 tracking-tight text-center">
-            Login
-          </h2>
-          <div className="flex items-center justify-center mb-4">
-            <img className="h-30 w-28 m-auto" src={b__2} alt="logo" />
-          </div>
+        {/* RIGHT FORM */}
+        <div className="w-full md:w-1/2 p-8 text-white flex flex-col justify-center">
+          {/* Header */}
+          <h2 className="text-3xl font-bold text-yellow-400 mb-2">Login</h2>
+          <p className="text-sm mb-6">
+            No account yet?{" "}
+            <span
+              onClick={() => {
+                onClose();
+                onRegisterClick();
+              }}
+              className="text-teal-300 cursor-pointer hover:underline"
+            >
+              Register
+            </span>
+          </p>
+
+          <img src={logo} alt="logo" className="w-20 mx-auto mb-4" />
 
           {/* Error */}
           {error && (
-            <p className="text-red-400 text-sm mb-6 bg-red-500/10 p-3 rounded-lg text-center">
+            <div className="mb-4 text-sm bg-red-500/20 text-red-300 p-2 rounded text-center">
               {error}
-            </p>
+            </div>
           )}
 
-          {/* Form */}
+          {/* FORM */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username */}
             <input
               type="text"
-              placeholder="Username"
-              className="w-full bg-gray-800/50 text-gray-100 px-4 py-3 rounded-lg border border-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500 outline-none transition"
+              placeholder="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              required
               disabled={loading}
+              className="w-full px-4 py-3 rounded-lg bg-[#0b2f34] border border-[#1aa6a6] focus:outline-none focus:ring-2 focus:ring-teal-400"
             />
 
             {/* Password */}
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full bg-gray-800/50 text-gray-100 px-4 py-3 rounded-lg border border-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500 outline-none transition"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
-
-            {/* Remember + Forgot */}
-            <div className="flex justify-between items-center">
-              <label className="flex items-center text-sm text-gray-100">
-                <input
-                  type="checkbox"
-                  className="mr-2 h-4 w-4 text-teal-500 border-gray-600 rounded focus:ring-teal-500"
-                  checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
-                  disabled={loading}
-                />
-                Remember me
-              </label>
-              <span className="text-teal-300 text-sm cursor-pointer hover:text-teal-200 transition">
-                Forgot Password?
+            <div className="relative">
+              <input
+                type={showPass ? "text" : "password"}
+                placeholder="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                className="w-full px-4 py-3 rounded-lg bg-[#0b2f34] border border-[#1aa6a6] focus:outline-none focus:ring-2 focus:ring-teal-400 pr-12"
+              />
+              <span
+                onClick={() => setShowPass(!showPass)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-teal-300"
+              >
+                {showPass ? <FaEyeSlash /> : <FaEye />}
               </span>
             </div>
 
-            {/* Submit */}
+            {/* Remember / Forgot */}
+            <div className="flex justify-between items-center text-sm">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                />
+                Remember
+              </label>
+              <span className="text-yellow-400 cursor-pointer hover:underline">
+                Forgot Password
+              </span>
+            </div>
+
+            {/* LOGIN BUTTON */}
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3 px-6 font-semibold rounded-lg shadow-md transition flex items-center justify-center ${
+              className={`w-full py-3 rounded-lg font-bold transition ${
                 loading
-                  ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-yellow-400 to-yellow-600 text-gray-900 hover:from-yellow-500 hover:to-yellow-700"
+                  ? "bg-gray-500 cursor-not-allowed"
+                  : "bg-yellow-400 text-yellow-800 hover:bg-yellow-300"
               }`}
             >
-              {loading ? (
-                <>
-                  <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Logging in...
-                </>
-              ) : (
-                "Login"
-              )}
+              {loading ? "Logging in..." : "Login"}
             </button>
-
-            {/* Register Link */}
-            <p className="text-sm text-gray-100 flex items-center justify-center">
-              Don't have an account?{" "}
-              <span
-                className="text-teal-300 underline cursor-pointer hover:text-teal-200 transition ml-1"
-                onClick={() => {
-                  onClose();
-                  onRegisterClick();
-                }}
-              >
-                Register
-              </span>
-            </p>
           </form>
+
+          {/* Social */}
+          <div className="mt-6">
+            <p className="text-center text-sm mb-3">or connect with</p>
+            <div className="flex gap-4">
+              <button className="flex-1 py-2 rounded bg-red-600 hover:bg-red-500">
+                Google
+              </button>
+              <button className="flex-1 py-2 rounded bg-blue-600 hover:bg-blue-500">
+                Facebook
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

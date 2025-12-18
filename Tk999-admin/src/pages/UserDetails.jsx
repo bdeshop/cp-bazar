@@ -16,13 +16,13 @@ import {
 import UserDetailsEditProfile from "../components/userDetailsEditProfile/userDetailsEditProfile";
 import { baseURL_For_IMG_UPLOAD, API_URL } from "../utils/baseURL";
 
-// Styled Components (kept mostly same, added for new sections like history table)
+// Colorful & Modern Styled Components
 const DashboardContainer = styled.div`
   display: flex;
   min-height: 100vh;
-  padding: 1.5rem;
-  gap: 1rem;
-  background: #f9fafb;
+  padding: 2rem;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
   @media (max-width: 768px) {
     flex-direction: column;
     padding: 1rem;
@@ -30,26 +30,29 @@ const DashboardContainer = styled.div`
 `;
 
 const Sidebar = styled.div`
-  flex: 0 0 20rem;
+  flex: 0 0 22rem;
   background: #ffffff;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 15px 35px rgba(99, 86, 246, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   @media (max-width: 768px) {
     flex: none;
     width: 100%;
-    padding: 1rem;
+    padding: 1.5rem;
   }
 `;
 
 const MainContent = styled.div`
   flex: 1;
   background: #ffffff;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 15px 35px rgba(99, 86, 246, 0.15);
   @media (max-width: 768px) {
-    padding: 1rem;
+    padding: 1.5rem;
   }
 `;
 
@@ -57,200 +60,225 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  background: #1c2937;
-  border-radius: 0.375rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 1rem;
   color: #ffffff;
+  box-shadow: 0 10px 20px rgba(99, 86, 246, 0.2);
   @media (max-width: 480px) {
     flex-direction: column;
     align-items: flex-start;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
+    gap: 1rem;
   }
 `;
 
 const Title = styled.h1`
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.75rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #ffffff;
-  @media (max-width: 480px) {
-    font-size: 1.25rem;
-  }
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const SummaryCard = styled.div`
-  margin-bottom: 1rem;
-  padding: 1rem;
-  background: rgb(26, 44, 65);
-  border-radius: 0.375rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  border-radius: 1rem;
   text-align: center;
   color: #ffffff;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(30, 41, 59, 0.2);
   &:hover {
-    background: rgb(61, 88, 118);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(30, 41, 59, 0.3);
   }
 `;
 
 const SummaryLabel = styled.div`
-  font-size: 0.875rem;
-  font-weight: 400;
+  font-size: 0.925rem;
+  font-weight: 500;
+  opacity: 0.9;
 `;
 
 const SummaryValue = styled.div`
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
+`;
+
+const ProfileImage = styled.div`
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid #6366f1;
+  box-shadow: 0 10px 25px rgba(99, 86, 246, 0.3);
 `;
 
 const StatusBadge = styled.span`
-  padding: 0.375rem 0.875rem;
-  border-radius: 1.25rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  font-size: 0.925rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
   ${({ status }) => {
     switch (status) {
       case "active":
-        return `
-          background: #16a34a;
-          color: #ffffff;
-        `;
-      case "banned":
-        return `
-          background: #dc2626;
-          color: #ffffff;
-        `;
+        return `background: linear-gradient(90deg, #10b981, #34d399);`;
+      case "inactive":
+        return `background: linear-gradient(90deg, #ef4444, #f87171);`;
       default:
-        return `
-          background: #6b7280;
-          color: #ffffff;
-        `;
+        return `background: linear-gradient(90deg, #6b7280, #9ca3af);`;
     }
   }}
+  color: #ffffff;
 `;
 
 const InfoSection = styled.div`
-  margin-bottom: 1.5rem;
-  @media (max-width: 480px) {
-    margin-bottom: 1rem;
-  }
+  margin-bottom: 2.5rem;
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 1.125rem;
+  font-size: 1.375rem;
   font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 1rem;
+  color: #4f46e5;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 const InfoGrid = styled.div`
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr));
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: 0.75rem;
   }
 `;
 
 const InfoItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  padding: 1rem;
-  border-radius: 0.375rem;
-  background: #f9fafb;
-  border: 1px solid #d1d5db;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #f8fafc, #e0e7ff);
+  border: 2px solid #c7d2fe;
+  transition: all 0.3s ease;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(99, 86, 246, 0.2);
+  }
 `;
 
 const IconWrapper = styled.span`
-  color: #1c2937;
-  font-size: 1.25rem;
-  padding: 0.5rem;
+  color: #6366f1;
+  font-size: 1.5rem;
+  padding: 0.75rem;
   border-radius: 50%;
-  background: #dbeafe;
+  background: linear-gradient(135deg, #eef2ff, #c7d2fe);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 6px 15px rgba(99, 86, 246, 0.2);
 `;
 
 const Label = styled.span`
-  font-weight: 600;
-  color: #000000;
-  min-width: 5.625rem;
+  font-weight: 700;
+  color: #4f46e5;
+  min-width: 1rem;
 `;
 
 const Value = styled.span`
-  color: #374151;
+  color: #334155;
   word-break: break-word;
-  font-weight: 400;
+  font-weight: 500;
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
-  @media (max-width: 480px) {
-    width: 100%;
-    justify-content: space-between;
-    margin-top: 0.75rem;
-  }
 `;
 
 const ActionButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 2.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  background: ${({ primary }) => (primary ? "#dc2626" : "#2563eb")};
+  height: 3rem;
+  padding: 0 1.75rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(90deg, #dc2626, #ef4444);
   color: #ffffff;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   outline: none;
-  transition: background-color 0.2s ease;
-  &:hover {
-    background: ${({ primary }) => (primary ? "#b91c1c" : "#1d4ed8")};
-  }
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
   svg {
-    margin-right: 0.5rem;
+    margin-right: 0.75rem;
   }
-  @media (max-width: 480px) {
-    flex: 1;
-    padding: 0.75rem 1rem;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(220, 38, 38, 0.4);
+    background: linear-gradient(90deg, #b91c1c, #dc2626);
   }
 `;
 
 const LoadingContainer = styled.div`
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  color: #1c2937;
-  font-size: 1.125rem;
-  background: #ffffff;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  color: #6366f1;
+  font-size: 1.5rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #f8fafc, #e0e7ff);
+  gap: 1rem;
+`;
+
+const StyledSpinner = styled.div`
+  border: 6px solid #e0e7ff;
+  border-top: 6px solid #6366f1;
+  border-right: 6px solid #ec4899;
+  border-radius: 50%;
+  width: 4rem;
+  height: 4rem;
+  animation: spin 1s linear infinite;
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 `;
 
 const ErrorAlert = styled.div`
-  padding: 1rem;
-  background: #fef2f2;
+  padding: 2rem;
+  background: linear-gradient(90deg, #fee2e2, #fecaca);
   color: #dc2626;
-  border-radius: 0.375rem;
+  border-radius: 1rem;
   text-align: center;
-  margin: 1rem 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  margin: 2rem;
+  font-weight: 700;
+  font-size: 1.125rem;
+  box-shadow: 0 15px 35px rgba(220, 38, 38, 0.15);
+  border: 2px solid #fca5a5;
 `;
 
-// Styled Components for Phone Number Display (kept, but mapped whatsapp to phone)
 const PhoneNumberContainer = styled.div`
-  margin-bottom: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -259,49 +287,56 @@ const PhoneNumberContainer = styled.div`
 const PhoneNumberWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: #f9fafb;
-  border-radius: 6px;
-  width: 100%;
-  justify-content: center;
-`;
-
-const CountryCode = styled.span`
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
+  gap: 8px;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  padding: 4px;
+  border-radius: 0.75rem;
+  border: 2px solid #86efac;
 `;
 
 const PhoneNumber = styled.span`
-  font-size: 16px;
-  font-weight: 400;
-  color: #1f2937;
-`;
-
-const VerifiedText = styled.span`
-  color: #16a34a;
+  font-size: 1.125rem;
   font-weight: 600;
+  color: #166534;
 `;
 
-const NotVerifiedText = styled.span`
-  color: #dc2626;
-  font-weight: 600;
-`;
-
-// New styled for history table
 const HistoryTable = styled.table`
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   margin-top: 1rem;
-  th,
-  td {
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    text-align: left;
-  }
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+
   th {
-    background: #f3f4f6;
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+    color: #ffffff;
+    padding: 1rem 1.25rem;
+    text-align: left;
+    font-weight: 600;
   }
+
+  td {
+    padding: 1rem 1.25rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  tr:hover td {
+    background: linear-gradient(90deg, #eef2ff, #fdf4ff);
+  }
+`;
+
+const NoHistoryMessage = styled.div`
+  text-align: center;
+  padding: 3rem;
+  color: #6366f1;
+  font-size: 1.25rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #f8fafc, #e0e7ff);
+  border-radius: 1rem;
+  border: 2px dashed #a78bfa;
 `;
 
 export default function UserDetails() {
@@ -343,7 +378,8 @@ export default function UserDetails() {
   if (loading) {
     return (
       <LoadingContainer>
-        <FaUser style={{ marginRight: "0.75rem" }} /> Loading User Data...
+        <StyledSpinner />
+        <div>Loading User Data...</div>
       </LoadingContainer>
     );
   }
@@ -352,8 +388,7 @@ export default function UserDetails() {
     return (
       <DashboardContainer>
         <ErrorAlert>
-          <strong style={{ marginRight: "0.5rem" }}>Error:</strong>
-          {error}
+          <strong>Error:</strong> {error}
         </ErrorAlert>
       </DashboardContainer>
     );
@@ -363,37 +398,29 @@ export default function UserDetails() {
     <DashboardContainer>
       <Sidebar>
         <SummaryCard>
-          <SummaryLabel>Image</SummaryLabel>
-          <div
-            style={{
-              borderRadius: "50%",
-              width: "2.5rem",
-              height: "2.5rem",
-              backgroundColor: "#f9fafb",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+          <SummaryLabel>Profile Image</SummaryLabel>
+          <ProfileImage>
             {userInfo?.profileImage ? (
               <img
                 src={`${baseURL_For_IMG_UPLOAD}s/${userInfo.profileImage}`}
-                alt="Profile Image"
-                style={{ borderRadius: "50%", width: "100%", height: "100%" }}
+                alt="Profile"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 onError={(e) => {
                   e.target.src =
-                    "https://cdn-icons-png.freepik.com/512/8532/8532963.png?ga=GA1.1.1458044456.1733050642";
+                    "https://cdn-icons-png.freepik.com/512/8532/8532963.png";
                 }}
               />
             ) : (
-              <FaUser className="text-xl" />
+              <FaUser size={48} color="#6366f1" />
             )}
-          </div>
+          </ProfileImage>
         </SummaryCard>
+
         <SummaryCard>
           <SummaryLabel>Username</SummaryLabel>
           <SummaryValue>{userInfo?.username || "-"}</SummaryValue>
         </SummaryCard>
+
         <SummaryCard>
           <SummaryLabel>Balance</SummaryLabel>
           <SummaryValue>
@@ -402,6 +429,7 @@ export default function UserDetails() {
               : "-"}
           </SummaryValue>
         </SummaryCard>
+
         <SummaryCard>
           <SummaryLabel>Status</SummaryLabel>
           <StatusBadge status={userInfo?.isActive ? "active" : "inactive"}>
@@ -409,6 +437,7 @@ export default function UserDetails() {
           </StatusBadge>
         </SummaryCard>
       </Sidebar>
+
       <MainContent>
         {isEditing ? (
           <UserDetailsEditProfile
@@ -422,11 +451,12 @@ export default function UserDetails() {
                 <FaChartLine /> User Dashboard
               </Title>
               <ButtonContainer>
-                <ActionButton primary onClick={handleEditProfile}>
+                <ActionButton onClick={handleEditProfile}>
                   <FaEdit /> Edit Profile
                 </ActionButton>
               </ButtonContainer>
             </Header>
+
             <InfoSection>
               <SectionTitle>Personal Information</SectionTitle>
               <InfoGrid>
@@ -455,12 +485,10 @@ export default function UserDetails() {
                   <IconWrapper>
                     <FaPhone />
                   </IconWrapper>
-                  <Label>Phone :</Label>
+                  <Label>Phone:</Label>
                   <Value>
                     <PhoneNumberContainer>
                       <PhoneNumberWrapper>
-                        {/* <CountryCode>+880</CountryCode>{" "} */}
-                        {/* Assume based on number, adjust if needed */}
                         <PhoneNumber>{userInfo?.whatsapp || "-"}</PhoneNumber>
                       </PhoneNumberWrapper>
                     </PhoneNumberContainer>
@@ -496,6 +524,7 @@ export default function UserDetails() {
                 </InfoItem>
               </InfoGrid>
             </InfoSection>
+
             <InfoSection>
               <SectionTitle>Financial Information</SectionTitle>
               <InfoGrid>
@@ -523,6 +552,7 @@ export default function UserDetails() {
                 </InfoItem>
               </InfoGrid>
             </InfoSection>
+
             <InfoSection>
               <SectionTitle>Commissions</SectionTitle>
               <InfoGrid>
@@ -563,7 +593,7 @@ export default function UserDetails() {
                   <IconWrapper>
                     <FaMoneyBill />
                   </IconWrapper>
-                  <Label>Game Loss Commission Balance:</Label>
+                  <Label>Game Loss Comm. Balance:</Label>
                   <Value>
                     {userInfo?.gameLossCommissionBalance !== undefined
                       ? userInfo.gameLossCommissionBalance.toFixed(2)
@@ -574,7 +604,7 @@ export default function UserDetails() {
                   <IconWrapper>
                     <FaMoneyBill />
                   </IconWrapper>
-                  <Label>Deposit Commission Balance:</Label>
+                  <Label>Deposit Comm. Balance:</Label>
                   <Value>
                     {userInfo?.depositCommissionBalance !== undefined
                       ? userInfo.depositCommissionBalance.toFixed(2)
@@ -585,7 +615,7 @@ export default function UserDetails() {
                   <IconWrapper>
                     <FaMoneyBill />
                   </IconWrapper>
-                  <Label>Refer Commission Balance:</Label>
+                  <Label>Refer Comm. Balance:</Label>
                   <Value>
                     {userInfo?.referCommissionBalance !== undefined
                       ? userInfo.referCommissionBalance.toFixed(2)
@@ -594,6 +624,7 @@ export default function UserDetails() {
                 </InfoItem>
               </InfoGrid>
             </InfoSection>
+
             <InfoSection>
               <SectionTitle>Activity</SectionTitle>
               <InfoGrid>
@@ -621,6 +652,7 @@ export default function UserDetails() {
                 </InfoItem>
               </InfoGrid>
             </InfoSection>
+
             <InfoSection>
               <SectionTitle>Game History</SectionTitle>
               {userInfo?.gameHistory && userInfo.gameHistory.length > 0 ? (
@@ -655,7 +687,7 @@ export default function UserDetails() {
                   </tbody>
                 </HistoryTable>
               ) : (
-                <Value>No game history available</Value>
+                <NoHistoryMessage>No game history available</NoHistoryMessage>
               )}
             </InfoSection>
           </>

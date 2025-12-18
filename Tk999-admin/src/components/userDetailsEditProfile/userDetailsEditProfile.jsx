@@ -7,143 +7,198 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { baseURL_For_IMG_UPLOAD, API_URL } from "../../utils/baseURL";
 
-// Styled Components
+// Colorful & Modern Styled Components
 const EditContainer = styled.div`
-  padding: 1.5rem;
+  padding: 2.5rem;
   background: #ffffff;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border-radius: 1rem;
+  box-shadow: 0 15px 40px rgba(99, 86, 246, 0.2);
+  max-width: 1200px;
+  margin: 0 auto;
 `;
 
 const EditTitle = styled.h2`
-  font-size: 1.25rem;
+  font-size: 1.875rem;
   font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
+  color: #4f46e5;
+  margin-bottom: 2rem;
+  text-align: center;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 `;
 
 const FormGrid = styled.div`
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 `;
 
 const FormItem = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
 `;
 
 const FormLabel = styled.label`
-  font-weight: 600;
-  color: #111827;
+  font-weight: 700;
+  color: #4f46e5;
+  font-size: 1rem;
 `;
 
 const FormInput = styled.input`
-  height: 42px;
-  padding: 0 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
+  height: 3rem;
+  padding: 0 1rem;
+  border: 2px solid #e0e7ff;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  background: #f8fafc;
   outline: none;
-  transition: border 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(99, 86, 246, 0.1);
+
   &:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 86, 246, 0.3);
+    background: #ffffff;
+  }
+
+  &::placeholder {
+    color: #94a3b8;
   }
 `;
 
 const FormSelect = styled.select`
-  height: 42px;
-  padding: 0 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  background: white;
-  font-size: 0.875rem;
+  height: 3rem;
+  padding: 0 1rem;
+  border: 2px solid #e0e7ff;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(99, 86, 246, 0.1);
+
+  &:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 86, 246, 0.3);
+  }
 `;
 
 const FormCheckbox = styled.input`
-  width: 20px;
-  height: 20px;
-  accent-color: #2563eb;
+  width: 24px;
+  height: 24px;
+  accent-color: #6366f1;
+  cursor: pointer;
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 2rem;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 3rem;
 `;
 
 const SaveButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: #1e40af;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(90deg, #10b981, #34d399);
   color: white;
   border: none;
-  border-radius: 0.375rem;
-  font-weight: 500;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 1.1rem;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+
   &:hover {
-    background: #1e3a8a;
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
   }
+
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.7;
     cursor: not-allowed;
+    transform: none;
   }
 `;
 
 const CancelButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: #dc2626;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(90deg, #ef4444, #f87171);
   color: white;
   border: none;
-  border-radius: 0.375rem;
-  font-weight: 500;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 1.1rem;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+
   &:hover {
-    background: #b91c1c;
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
   }
+
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.7;
     cursor: not-allowed;
+    transform: none;
   }
 `;
 
 const ImageUploadContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
+  align-items: center;
 `;
 
 const ImagePreview = styled.img`
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   object-fit: cover;
-  border-radius: 0.5rem;
-  border: 1px solid #d1d5db;
+  border-radius: 1rem;
+  border: 4px solid #6366f1;
+  box-shadow: 0 15px 30px rgba(99, 86, 246, 0.3);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
 `;
 
 const UploadButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #4b5563;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
   color: white;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(99, 86, 246, 0.3);
+
   &:hover {
-    background: #374151;
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(99, 86, 246, 0.4);
   }
+
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.7;
     cursor: not-allowed;
   }
 `;
@@ -154,19 +209,46 @@ const HiddenFileInput = styled.input`
 
 const LoadingContainer = styled.div`
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 60vh;
-  font-size: 1.125rem;
-  color: #4b5563;
+  height: 70vh;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #6366f1;
+  gap: 1.5rem;
+`;
+
+const StyledSpinner = styled.div`
+  border: 6px solid #e0e7ff;
+  border-top: 6px solid #6366f1;
+  border-right: 6px solid #ec4899;
+  border-radius: 50%;
+  width: 4.5rem;
+  height: 4.5rem;
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 `;
 
 const ErrorAlert = styled.div`
-  padding: 1rem;
-  background: #fef2f2;
+  padding: 2rem;
+  background: linear-gradient(90deg, #fee2e2, #fecaca);
   color: #dc2626;
-  border-radius: 0.375rem;
+  border-radius: 1rem;
   text-align: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+  box-shadow: 0 15px 35px rgba(220, 38, 38, 0.15);
+  border: 2px solid #fca5a5;
+  margin: 2rem;
 `;
 
 const UserDetailsEditProfile = ({ onCancel }) => {
@@ -180,9 +262,8 @@ const UserDetailsEditProfile = ({ onCancel }) => {
 
   const [formData, setFormData] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
-  const [originalImage, setOriginalImage] = useState(null); // To keep old image if no new upload
+  const [originalImage, setOriginalImage] = useState(null);
 
-  // Load user data
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -206,7 +287,7 @@ const UserDetailsEditProfile = ({ onCancel }) => {
           depositCommissionBalance: user.depositCommissionBalance || 0,
           referCommissionBalance: user.referCommissionBalance || 0,
           referralCode: user.referralCode || "",
-          profileImage: null, // Will be File if changed
+          profileImage: null,
         });
 
         setImagePreview(user.profileImage || null);
@@ -257,7 +338,7 @@ const UserDetailsEditProfile = ({ onCancel }) => {
 
     try {
       const res = await axios.post(baseURL_For_IMG_UPLOAD, form);
-      return res.data.imageUrl; // Adjust if your API returns differently
+      return res.data.imageUrl;
     } catch (err) {
       toast.error("Image upload failed");
       return null;
@@ -288,7 +369,6 @@ const UserDetailsEditProfile = ({ onCancel }) => {
         profileImage: finalImageUrl,
       };
 
-      // Don't send empty password
       if (!payload.password?.trim()) {
         delete payload.password;
       }
@@ -296,7 +376,7 @@ const UserDetailsEditProfile = ({ onCancel }) => {
       await axios.put(`${API_URL}/api/users/${userId}`, payload);
 
       toast.success("Profile updated successfully!");
-      onCancel(); // Go back to view mode
+      onCancel();
     } catch (err) {
       console.error(err);
       const msg = err.response?.data?.message || "Failed to update profile";
@@ -306,8 +386,18 @@ const UserDetailsEditProfile = ({ onCancel }) => {
     }
   };
 
-  if (loading) return <LoadingContainer>Loading user data...</LoadingContainer>;
-  if (error) return <ErrorAlert>{error}</ErrorAlert>;
+  if (loading) {
+    return (
+      <LoadingContainer>
+        <StyledSpinner />
+        <div>Loading user data...</div>
+      </LoadingContainer>
+    );
+  }
+
+  if (error) {
+    return <ErrorAlert>{error}</ErrorAlert>;
+  }
 
   return (
     <>
@@ -371,12 +461,28 @@ const UserDetailsEditProfile = ({ onCancel }) => {
 
             <FormItem>
               <FormLabel>Active Status</FormLabel>
-              <FormCheckbox
-                type="checkbox"
-                name="isActive"
-                checked={formData.isActive}
-                onChange={handleChange}
-              />
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                }}
+              >
+                <FormCheckbox
+                  type="checkbox"
+                  name="isActive"
+                  checked={formData.isActive}
+                  onChange={handleChange}
+                />
+                <span
+                  style={{
+                    color: formData.isActive ? "#10b981" : "#ef4444",
+                    fontWeight: "600",
+                  }}
+                >
+                  {formData.isActive ? "Active" : "Inactive"}
+                </span>
+              </div>
             </FormItem>
 
             <FormItem>
@@ -495,7 +601,7 @@ const UserDetailsEditProfile = ({ onCancel }) => {
                         ? imagePreview
                         : `${baseURL_For_IMG_UPLOAD}s/${imagePreview}`
                     }
-                    alt="Profile"
+                    alt="Profile Preview"
                   />
                 )}
                 <UploadButton
@@ -530,7 +636,7 @@ const UserDetailsEditProfile = ({ onCancel }) => {
         </form>
       </EditContainer>
 
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
     </>
   );
 };

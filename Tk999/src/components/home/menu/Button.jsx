@@ -59,7 +59,7 @@ const Button = () => {
         <FaPlusCircle /> {translate("Deposit")}
       </Btn>
 
-      <Btn to="/withdraw">
+      <Btn to="/information#tab3">
         <FaMoneyBillTransfer /> {translate("Withdraw")}
       </Btn>
     </Container>
