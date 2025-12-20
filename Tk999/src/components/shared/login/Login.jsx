@@ -63,7 +63,7 @@ const Login = ({ onClose, onRegisterClick }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="relative w-[95%] max-w-[900px] h-[600px] rounded-2xl overflow-hidden shadow-2xl bg-[#053a40] flex">
         {/* ❌ Close */}
         <button
