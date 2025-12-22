@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 // import { AuthContext } from "@/context/AuthContext"; // তোমার AuthContext
 import { baseURL, baseURL_For_IMG_UPLOAD } from "@/utils/baseURL";
@@ -7,10 +7,11 @@ import checkImage from "../../../assets/check.8cbcb507.svg";
 import { FaExclamationTriangle, FaRegFileAlt } from "react-icons/fa";
 import { io } from "socket.io-client";
 import { RiCustomerService2Line } from "react-icons/ri";
+import { AuthContext } from "@/Context/AuthContext";
 // OpayDevicesPanel hidden from user view (no import needed)
 
 const TabsWrapper = ({ language }) => {
-  // const { userId } = useContext(AuthContext); // যদি লাগে
+  const { userId } = useContext(AuthContext); // যদি লাগে
 
   const [depositPaymentMethods, setDepositPaymentMethods] = useState([]);
   const [promotions, setPromotions] = useState([]);
@@ -349,6 +350,7 @@ const TabsWrapper = ({ language }) => {
           depositPaymentMethods={depositPaymentMethods}  // এটা যোগ করো
           language={language}
           tabsData={tabsData}
+          userId={userId}  // যদি লাগে
           selectedTab={selectedTab}
           handlePromotionChange={handlePromotionChange}
           userInputs={tabsData[selectedTab]?.userInputs || []}
