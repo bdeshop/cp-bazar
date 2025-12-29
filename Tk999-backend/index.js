@@ -19,6 +19,7 @@ const User = require("./model/user.model");
 const qs = require("qs");
 const bcrypt = require("bcrypt");
 const { default: axios } = require("axios");
+const GameModel = require("./model/game.model");
 const fs = require("fs").promises;
 
 // const { uploadImage } = require("./controller/ImageUpload.Controller");
@@ -52,6 +53,19 @@ app.use(
       "http://cp666.live",
       "https://cp666.live",
       "http://cp666.live",
+      "https://tk99api.oracelsoft.com/",
+      "https://aff.tk999.oraclemostplay.xyz",
+      "https://oraclemostplay.xyz",
+      "http://aff.tk999.oraclemostplay.xyz",
+      "http://oraclemostplay.xyz",
+      "https://admin.oraclemostplay.xyz",
+      "http://admin.oraclemostplay.xyz",
+      "https://cb66.online",
+      "https://m.aff.cb66.online",
+      "https://aff.cb66.online",
+      "https://admin.cb66.online",
+      "http://159.198.43.252:5173",
+      "https://159.198.43.252:5173",
       "*",
     ], // Allow requests from frontend
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Allow specified methods
@@ -120,6 +134,7 @@ app.get("/", (req, res) => {
 app.post("/playgame", async (req, res) => {
   try {
     const { gameID, username, money } = req.body;
+    const sanitizedMoney = Number.parseInt(money, 10);
 
    
     console.log("PlayGame Request Body:", req.body);
@@ -139,13 +154,55 @@ app.post("/playgame", async (req, res) => {
     //   gameid: gameID,
     // };
 
+    
+    const gameDataDB = await GameModel.findById(gameID);
+    if (!gameDataDB) {
+      return res.status(404).json({
+        success: false,
+        message: "Game not found or invalid gameID",
+      });
+    }
+
+
+   let gameData ;
+    try {
+      const oracleRes = await axios.get(
+        `https://apigames.oracleapi.net/api/games/${gameDataDB.gameAPIID}`,
+        {
+          headers: {
+            "x-api-key": "b4fb7adb955b1078d8d38b54f5ad7be8ded17cfba85c37e4faa729ddd679d379",
+          },
+        }
+      );
+      gameData = oracleRes?.data?.data || [];
+
+      console.log("gameData ",oracleRes?.data);
+      
+
+    } catch (err) {
+      console.error("Oracle API Error:", err.response?.data || err.message);
+      return res.status(404).json({
+        success: false,
+        message: "Game not found or invalid gameID" ,
+      });
+    }
+
+    // game_uuid না থাকলে এরর
+    if (!gameData.game_uuid) {
+      return res.status(400).json({
+        success: false,
+        message: "game_uuid not found for this game",
+      });
+    }
+
+
     // api.tk999.oracelsoft.com
     const postData = {
-      home_url: "https://api.tk999.oracelsoft.com",
-      token: "5f4e59f09dc1a061cdb5185ceef6e75b",
-      username: username + "45", // চাইলে random করতে পারো
-      money: money,
-      gameid: gameID,
+      home_url: "https://cb66.online", // sir 
+      token: "9c7bf891c268d1e0bcb1e723ae3c9b40", // sir 
+      username: username + "45", // চাইলে random করতে পারো 
+      money: Number.isNaN(sanitizedMoney) ? 0 : sanitizedMoney,
+      gameid: gameData.game_uuid,
     };
 
     console.log(postData);
