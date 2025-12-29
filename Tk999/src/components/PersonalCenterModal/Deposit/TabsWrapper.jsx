@@ -1,4 +1,6 @@
 import { useState, useEffect, useContext } from "react";
+// For redirect
+import { useRef } from "react";
 import axios from "axios";
 // import { AuthContext } from "@/context/AuthContext"; // তোমার AuthContext
 import { baseURL, baseURL_For_IMG_UPLOAD } from "@/utils/baseURL";
@@ -13,12 +15,16 @@ import { AuthContext } from "@/Context/AuthContext";
 const TabsWrapper = ({ language }) => {
   const { userId } = useContext(AuthContext); // যদি লাগে
 
+  // Prevent multiple API calls
+  const opayApiCalled = useRef(false);
+
   const [depositPaymentMethods, setDepositPaymentMethods] = useState([]);
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [selectedTab, setSelectedTab] = useState(null);
+  const [methodName, setMethodName] = useState("");
   const [selectedProcessTab, setSelectedProcessTab] = useState(null);
   const [selectedPromotion, setSelectedPromotion] = useState(null);
   const [selectedAmount, setSelectedAmount] = useState(100);
@@ -49,6 +55,7 @@ const TabsWrapper = ({ language }) => {
         if (methods.length > 0) {
           const first = methods[0];
           setSelectedTab(first._id);
+          setMethodName( first.methodName.toLowerCase() );
           const initialGateways = Array.isArray(first.gateway) ? first.gateway : [];
           const nonOpay = initialGateways.filter((g) => String(g).toLowerCase() !== "opay");
           setSelectedProcessTab(nonOpay[0] || initialGateways[0] || null);
@@ -170,6 +177,7 @@ const TabsWrapper = ({ language }) => {
     return acc;
   }, {});
 
+  // Remove Opay API call from here. All logic will be handled on button click in CommonContent.
   // Loading State
   if (loading) {
     return (
@@ -217,6 +225,7 @@ const TabsWrapper = ({ language }) => {
             }`}
             onClick={() => {
               setSelectedTab(method._id);
+              setMethodName( method.methodName.toLowerCase() );
               const availableTabs = (method.gateway || []).filter(
                 (g) => !(String(g).toLowerCase() === "opay" && !opayEnabled)
               );
@@ -253,6 +262,9 @@ const TabsWrapper = ({ language }) => {
               {language === "bn" ? "ডিপোজিট ইতিহাস" : "Deposit History"}
             </span>
           </div>
+
+          
+
         </div>
 
         {/* Mobile Icons */}
@@ -340,11 +352,19 @@ const TabsWrapper = ({ language }) => {
           })}
         </div>
 
-        {/* Opay devices panel hidden from user */}
+        {/* Opay devices panel visible to user */}
+        {String(selectedProcessTab).toLowerCase() === "opay" && opayEnabled && (
+          <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 hidden">
+            <strong>Opay Devices Online:</strong> {opayOnlineCount}
+            <br />
+            <span className="text-sm">{opayOnlineCount > 0 ? (language === "bn" ? "Opay device online, deposit korte parben." : "Opay device is online, you can deposit.") : (language === "bn" ? "Kono Opay device online nei, deposit korte parben na." : "No Opay device online, deposit not available.")}</span>
+          </div>
+        )}
 
         {/* Common Content */}
         <CommonContent
           amounts={tabsData[selectedTab]?.amounts || []}
+          methodName={methodName}
           selectedProcessTab={selectedProcessTab}
           selectedPromotion={selectedPromotion}
           depositPaymentMethods={depositPaymentMethods}  // এটা যোগ করো
